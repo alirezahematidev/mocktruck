@@ -27,6 +27,8 @@
     "mocktruck": "./bin/index.js"
   },
   "devDependencies": {
+    "@types/configstore": "^6.0.0",
+    "@types/webpack": "^5.28.0",
     "@webpack-cli/generators": "^3.0.1",
     "boxen": "^7.0.1",
     "chalk": "^5.2.0",
@@ -34,11 +36,11 @@
     "html-webpack-plugin": "^5.5.0",
     "prettier": "^2.8.3",
     "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.4",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1",
-    "yargs": "^17.6.2",
-    "@types/webpack": "^5.28.0"
+    "yargs": "^17.6.2"
   },
   "dependencies": {
     "axios": "^1.2.3",
