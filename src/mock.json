@@ -1,5 +1,6 @@
 {
   "id": "number",
   "name": "char",
-  "isActive": "bool"
+  "isActive": "bool",
+  "age": "char | number"
 }
