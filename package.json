@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "description": "Locally mock CRUD apis",
   "main": "bin/index.js",
-  "type": "module",
   "scripts": {
     "start": "node bin/index.js",
     "build": "webpack --mode=production --node-env=production",
@@ -28,6 +27,7 @@
   },
   "devDependencies": {
     "@types/configstore": "^6.0.0",
+    "@types/prettier": "^2.7.2",
     "@types/webpack": "^5.28.0",
     "@webpack-cli/generators": "^3.0.1",
     "boxen": "^7.0.1",

@@ -18,10 +18,12 @@
     "allowJs": true
   },
   "ts-node": {
-    "esm": false,
-    "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esm": true,
+    "compilerOptions": {
+      "resolveJsonModule": true,
+      "esModuleInterop": true
+    }
   },
-  "include": ["src", "src/custom.d.ts"],
+  "include": ["src", "src/custom.d.ts", "*.mts"],
   "exclude": ["node_modules", "lib", "bin"]
 }
