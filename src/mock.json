@@ -1,6 +1,22 @@
 {
-  "id": "number",
-  "name": "char",
-  "isActive": "bool",
-  "age": "char | number"
+    "model": {
+        "name": "user",
+        "$refSchema": {
+            "postSchema": {
+                "id": "uuid",
+                "title": "char(25)"
+            }
+        },
+        "schema": {
+            "id": "number",
+            "name": "char",
+            "isActive": "bool",
+            "posts": {
+                "refers": "list(postSchema,25)"
+            }
+        }
+    },
+    "options": {
+        "alwaysAttachUniqueIdToList": true
+    }
 }

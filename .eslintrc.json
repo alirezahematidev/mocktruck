@@ -1,0 +1,18 @@
+{
+  "settings": {
+    "next": {
+      "rootDir": "src/"
+    }
+  },
+  "extends": ["plugin:@typescript-eslint/recommended"],
+  "rules": {
+    "react-hooks/exhaustive-deps": "error",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-empty-interface": "off",
+    "no-prototype-builtins": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/ban-types": "off"
+  }
+}

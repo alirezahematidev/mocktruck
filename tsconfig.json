@@ -15,7 +15,12 @@
     "noImplicitAny": true,
     "module": "ESNext",
     "target": "esnext",
-    "allowJs": true
+    "allowJs": true,
+    "typeRoots": ["node_modules/@types", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@tests/*": ["./__tests__/*"]
+    }
   },
   "ts-node": {
     "esm": true,
@@ -24,6 +29,6 @@
       "esModuleInterop": true
     }
   },
-  "include": ["src", "src/custom.d.ts", "*.mts"],
+  "include": ["src", "src/typings.d.ts", "*.mts"],
   "exclude": ["node_modules", "lib", "bin"]
 }
