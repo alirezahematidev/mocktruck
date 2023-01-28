@@ -15,6 +15,9 @@ describer("helpers:isNumberWithLength", () => {
   const fn = jest.fn(helpers.isNumberWithLength);
 
   expect(fn("number(52)")).toBeTruthy();
+  expect(fn("number(52    )")).toBeTruthy();
+  expect(fn("number(    52)")).toBeTruthy();
+  expect(fn("number(    52    )")).toBeTruthy();
   expect(fn("NUMBER(52)")).toBeTruthy();
   expect(fn("?number(52)")).toBeTruthy();
   expect(fn("number(ab)")).toBeFalsy();
@@ -28,7 +31,9 @@ describer("helpers:isNumberErrWithLength", () => {
   const fn = jest.fn(helpers.isNumberErrWithLength);
 
   expect(fn("number(ab)")).toBeTruthy();
-  expect(fn("?number(ab)")).toBeTruthy();
+  expect(fn("?number(ab    )")).toBeTruthy();
+  expect(fn("?number(    ab)")).toBeTruthy();
+  expect(fn("?number(   ab   )")).toBeTruthy();
   expect(fn("NUMBER(ab)")).toBeTruthy();
   expect(fn("number(52)")).toBeFalsy();
   expect(fn("char")).toBeFalsy();
@@ -51,10 +56,22 @@ describer("helpers:isCharWithLength", () => {
   const fn = jest.fn(helpers.isCharWithLength);
 
   expect(fn("char(52)")).toBeTruthy();
+  expect(fn("char(   52)")).toBeTruthy();
+  expect(fn("char(52   )")).toBeTruthy();
+  expect(fn("char(    52   )")).toBeTruthy();
   expect(fn("char(lowercase)")).toBeTruthy();
+  expect(fn("char(   lowercase)")).toBeTruthy();
+  expect(fn("char(lowercase    )")).toBeTruthy();
+  expect(fn("char(    lowercase  )")).toBeTruthy();
   expect(fn("char(uppercase)")).toBeTruthy();
   expect(fn("char(LOWERCASE)")).toBeTruthy();
   expect(fn("char(25,lowercase)")).toBeTruthy();
+  expect(fn("char(25,lowercase  )")).toBeTruthy();
+  expect(fn("char( 25,lowercase)")).toBeTruthy();
+  expect(fn("char(   25,lowercase  )")).toBeTruthy();
+  expect(fn("char(   25 ,lowercase  )")).toBeTruthy();
+  expect(fn("char(   25, lowercase  )")).toBeTruthy();
+  expect(fn("char(   25 , lowercase  )")).toBeTruthy();
   expect(fn("char(25,uppercase)")).toBeTruthy();
   expect(fn("?char(52)")).toBeTruthy();
   expect(fn("CHAR(52)")).toBeTruthy();
@@ -63,6 +80,7 @@ describer("helpers:isCharWithLength", () => {
   expect(fn("number")).toBeFalsy();
   expect(fn("char(")).toBeFalsy();
   expect(fn("char()")).toBeFalsy();
+  expect(fn("char(  )")).toBeFalsy();
 });
 
 describer("helpers:isCharErrWithLength", () => {

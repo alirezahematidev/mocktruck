@@ -16,31 +16,20 @@ function generateChar(
   type?: "lowercase" | "uppercase",
 ): string {
   const _count = count <= 0 ? 8 : count;
-
-  const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const lowerChars = "abcdefghijklmnopqrstuvwxyz";
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
+  let chars = "";
   let result = "";
 
   if (type === "lowercase") {
-    for (let i = 0; i < _count; ++i) {
-      result += lowerChars[Math.floor(lowerChars.length * Math.random())];
-    }
-    return result;
+    chars = "abcdefghijklmnopqrstuvwxyz";
+  } else if (type === "uppercase") {
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  } else {
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   }
 
-  if (type === "uppercase") {
-    for (let i = 0; i < _count; ++i) {
-      result += upperChars[Math.floor(upperChars.length * Math.random())];
-    }
-    return result;
+  for (let i = 0; i < _count; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-
-  for (let i = 0; i < _count; ++i) {
-    result += chars[Math.floor(chars.length * Math.random())];
-  }
-
   return result;
 }
 
@@ -56,4 +45,74 @@ function generateUUID(): string {
   return randomUUID();
 }
 
-export { generateBool, generateChar, generateNumber, generateUUID };
+function generateEmail(): string {
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  const providers = ["gmail", "yahoo"];
+
+  let email = "";
+
+  for (let i = 0; i < 10; i++) {
+    email += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  email += "@";
+  email += providers[Math.floor(Math.random() * providers.length)];
+  email += ".com";
+
+  return email;
+}
+
+function generateURL(): string {
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let url = "";
+
+  let sfx = [".com", ".org", ".edu", ".gov", ".co", ".io"];
+
+  let randomSuffix = sfx[Math.floor(Math.random() * sfx.length)];
+
+  url += "http" + (Math.floor(Math.random() * 2) == 0 ? "" : "s") + "://";
+
+  for (let i = 0; i < 12; i++) {
+    url += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  url += randomSuffix;
+
+  return url;
+}
+
+function generateISODate(): string {
+  let start = new Date(1800, 0, 1);
+  let end = new Date();
+
+  let randomTimestamp =
+    start.getTime() + Math.random() * (end.getTime() - start.getTime());
+
+  let randomDate = new Date(randomTimestamp);
+
+  return randomDate.toISOString();
+}
+function generateUTCDate(): string {
+  let start = new Date(1800, 0, 1);
+  let end = new Date();
+  let randomTimestamp =
+    start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  let randomDate = new Date(randomTimestamp);
+  return randomDate.toUTCString();
+}
+
+function generateImage(w: string, h?: string): string {
+  return `https://loremflickr.com/${w}/${h ? h : w}`;
+}
+
+export {
+  generateBool,
+  generateChar,
+  generateNumber,
+  generateUUID,
+  generateEmail,
+  generateURL,
+  generateISODate,
+  generateUTCDate,
+  generateImage,
+};

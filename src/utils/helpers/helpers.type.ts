@@ -7,7 +7,7 @@ type CharErrWithLength = `char(${string})`;
 type BoolWithFrequency = `bool(${number})`;
 type BoolErrWithFrequency = `bool(${string})`;
 
-type DateFormat = "iso" | "utc" | "unix";
+type DateFormat = "iso" | "utc";
 type DateWithFormat = `date(${DateFormat})`;
 
 export {

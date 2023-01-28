@@ -40,3 +40,48 @@ describer("generators:generateUUID", () => {
   expect(formatter(fn())).toBeTruthy();
   expect(formatter(fn())).toBeTruthy();
 });
+
+describer("generators:generateEmail", () => {
+  const fn = jest.fn(generators.generateEmail);
+  const formatter = jest.fn(validators.isEmailFormat);
+
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+  expect(fn().endsWith(".com")).toBeTruthy();
+  expect(fn().includes("@")).toBeTruthy();
+});
+
+describer("generators:generateURL", () => {
+  const fn = jest.fn(generators.generateURL);
+  const formatter = jest.fn(validators.isUrlFormat);
+
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+});
+
+describer("generators:generateISODate", () => {
+  const fn = jest.fn(generators.generateISODate);
+  const formatter = jest.fn(validators.isISODate);
+
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+});
+
+describer("generators:generateUTCDate", () => {
+  const fn = jest.fn(generators.generateUTCDate);
+  const formatter = jest.fn(validators.isUTCDate);
+
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+  expect(formatter(fn())).toBeTruthy();
+});
+
+describer("generators:generateImage", () => {
+  const fn = jest.fn(generators.generateImage);
+
+  expect(fn("200", "300").endsWith("/200/300")).toBeTruthy();
+  expect(fn("400").endsWith("/400/400")).toBeTruthy();
+});

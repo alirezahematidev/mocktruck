@@ -4,11 +4,11 @@ type HelperName = keyof typeof helpers;
 
 const matchers: Record<HelperName, RegExp> = {
   isNumber: /^(\?)?number$/i,
-  isNumberWithLength: /^(\?)?number\(\d+\)$/i,
-  isNumberErrWithLength: /^(\?)?number\(\D+\)$/i,
+  isNumberWithLength: /^(\?)?number\((\s*)?\d+(\s*)?\)$/i,
+  isNumberErrWithLength: /^(\?)?number\((\s*)?\D+(\s*)?\)$/i,
   isChar: /^(\?)?char$/i,
   isCharWithLength:
-    /^(\?)?char\(((\d+|(lower|upper)case)|(\d+(\s+)?\,(\s+)?(lower|upper)case))\)$/i,
+    /^(\?)?char\((((\s*)?\d+(\s*)?|((\s*)?lower|upper)case(\s*)?)|((\s*)?\d+(\s+)?\,(\s+)?((\s*)?lower|upper)case)(\s*)?)\)$/i,
   isCharErrWithLength: /^(\?)?char\(((?!(lower|upper)case)\D+)\)$/i,
   isBool: /^(\?)?(bool(ean)?)$/i,
   isBoolWithFrequency: /^(\?)?(bool(ean)?)\(([0]{1}(\.\d+)?|1)\)?$/i,
