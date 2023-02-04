@@ -1,5 +1,5 @@
 import * as generators from "../index.mjs";
-import * as validators from "../../validators/index.mjs";
+import * as validators from "@externals";
 import describer from "../generators.describer";
 
 describer("generators:generateNumber", () => {
@@ -34,7 +34,7 @@ describer("generators:generateBool", () => {
 
 describer("generators:generateUUID", () => {
   const fn = jest.fn(generators.generateUUID);
-  const formatter = jest.fn(validators.isUUIDFormat);
+  const formatter = jest.fn(validators.is_uuid_format);
 
   expect(formatter(fn())).toBeTruthy();
   expect(formatter(fn())).toBeTruthy();
@@ -43,7 +43,7 @@ describer("generators:generateUUID", () => {
 
 describer("generators:generateEmail", () => {
   const fn = jest.fn(generators.generateEmail);
-  const formatter = jest.fn(validators.isEmailFormat);
+  const formatter = jest.fn(validators.is_email_format);
 
   expect(formatter(fn())).toBeTruthy();
   expect(formatter(fn())).toBeTruthy();
@@ -54,7 +54,7 @@ describer("generators:generateEmail", () => {
 
 describer("generators:generateURL", () => {
   const fn = jest.fn(generators.generateURL);
-  const formatter = jest.fn(validators.isUrlFormat);
+  const formatter = jest.fn(validators.is_url_format);
 
   expect(formatter(fn())).toBeTruthy();
   expect(formatter(fn())).toBeTruthy();
@@ -63,7 +63,7 @@ describer("generators:generateURL", () => {
 
 describer("generators:generateISODate", () => {
   const fn = jest.fn(generators.generateISODate);
-  const formatter = jest.fn(validators.isISODate);
+  const formatter = jest.fn(validators.is_iso_date_format);
 
   expect(formatter(fn())).toBeTruthy();
   expect(formatter(fn())).toBeTruthy();
@@ -72,7 +72,7 @@ describer("generators:generateISODate", () => {
 
 describer("generators:generateUTCDate", () => {
   const fn = jest.fn(generators.generateUTCDate);
-  const formatter = jest.fn(validators.isUTCDate);
+  const formatter = jest.fn(validators.is_utc_date_format);
 
   expect(formatter(fn())).toBeTruthy();
   expect(formatter(fn())).toBeTruthy();

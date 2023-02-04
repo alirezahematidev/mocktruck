@@ -3,3 +3,5 @@ yarn.lock
 lib
 dist
 .env
+src/externals/target
+Cargo.lock

@@ -17,9 +17,10 @@
     "target": "esnext",
     "allowJs": true,
     "typeRoots": ["node_modules/@types", "jest"],
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@tests/*": ["./__tests__/*"]
+      "@tests/*": ["./__tests__/*"],
+      "@externals": ["./externals/pkg/index.js"]
     }
   },
   "ts-node": {

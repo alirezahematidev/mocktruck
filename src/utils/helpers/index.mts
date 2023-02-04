@@ -1,80 +1,75 @@
 import {
   BoolErrWithFrequency,
   BoolWithFrequency,
-  CharErrWithLength,
   CharWithLength,
   DateWithFormat,
   NumberErrWithLength,
   NumberWithLength,
 } from "./helpers.type";
-import matchers from "./helpers.matcher";
+import * as matchers from "@externals";
 
 //number annotation
 function isNumber(type: string): type is "number" {
-  return matchers.isNumber.test(type);
+  return matchers.is_number(type);
 }
 
 function isNumberWithLength(type: string): type is NumberWithLength {
-  return matchers.isNumberWithLength.test(type);
+  return matchers.is_number_with_len(type);
 }
 
 function isNumberErrWithLength(type: string): type is NumberErrWithLength {
-  return matchers.isNumberErrWithLength.test(type);
+  return matchers.is_number_err_with_len(type);
 }
 
 //char annotation
 function isChar(type: string): type is "char" {
-  return matchers.isChar.test(type);
+  return matchers.is_char(type);
 }
 
 function isCharWithLength(type: string): type is CharWithLength {
-  return matchers.isCharWithLength.test(type);
-}
-
-function isCharErrWithLength(type: string): type is CharErrWithLength {
-  return matchers.isCharErrWithLength.test(type);
+  return matchers.is_char_with_len(type);
 }
 
 //bool(ean) annotation
 function isBool(type: string): type is "bool" {
-  return matchers.isBool.test(type);
+  return matchers.is_bool(type);
 }
 
 function isBoolWithFrequency(type: string): type is BoolWithFrequency {
-  return matchers.isBoolWithFrequency.test(type);
+  return matchers.is_bool_with_freq(type);
 }
 
 function isBoolErrWithFrequency(type: string): type is BoolErrWithFrequency {
-  return matchers.isBoolErrWithFrequency.test(type);
+  return matchers.is_bool_err_with_freq(type);
 }
 
 //date annotation
 function isDate(type: string): type is "date" {
-  return matchers.isDate.test(type);
+  return matchers.is_date(type);
 }
 
 function isDateWithFormat(type: string): type is DateWithFormat {
-  return matchers.isDateWithFormat.test(type);
+  return matchers.is_date_with_format(type);
 }
 
 //uuid annotation
 function isUUID(type: string): type is "uuid" {
-  return matchers.isUUID.test(type);
+  return matchers.is_uuid(type);
 }
 
 //url annotation
 function isUrl(type: string): type is "url" {
-  return matchers.isUrl.test(type);
+  return matchers.is_url(type);
 }
 
 //email annotation
 function isEmail(type: string): type is "email" {
-  return matchers.isEmail.test(type);
+  return matchers.is_email(type);
 }
 
 //image annotation
 function isImage(type: string): type is "image" {
-  return matchers.isImage.test(type);
+  return matchers.is_image(type);
 }
 
 export {
@@ -83,7 +78,6 @@ export {
   isNumberErrWithLength,
   isChar,
   isCharWithLength,
-  isCharErrWithLength,
   isBool,
   isBoolWithFrequency,
   isBoolErrWithFrequency,

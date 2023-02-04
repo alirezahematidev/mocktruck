@@ -4,7 +4,7 @@ import { pathsToModuleNameMapper } from "ts-jest";
 import { compilerOptions } from "./tsconfig.json";
 
 const config: Config = {
-  silent: true,
+  silent: false,
   verbose: true,
   detectOpenHandles: true,
   preset: "ts-jest",
