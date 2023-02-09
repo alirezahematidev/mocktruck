@@ -1,125 +1,68 @@
-import { extractMapper } from "./extractors.matcher";
+import * as extractors from "@externals";
 
-function trim(value: string): string {
-  return value.trim();
+function nullish<T>(value: T | undefined): T | null {
+  if (!value) return null;
+
+  return value;
 }
 
 function numberWithLengthExtract(type: string): number | null {
-  const matching = extractMapper.numberWithLengthExtract.exec(type);
+  const matching = extractors.number_arguments_extract(type);
 
-  if (!matching) return null;
-
-  const matchingAsNumber = Number(trim(matching[1]));
-
-  if (isNaN(matchingAsNumber)) return null;
-
-  return matchingAsNumber;
+  return nullish(matching);
 }
-
-type CharStyle = "uppercase" | "lowercase";
 
 type CharExtractObject = {
   length: number | null;
-  style: CharStyle | null;
+  style: string | null;
 };
 
 function charWithLengthExtract(type: string): CharExtractObject | null {
-  const matching = extractMapper.charWithLengthExtract.exec(type);
+  const matching = extractors.char_arguments_extract(type);
 
-  if (!matching || (!matching[1] && !matching[2])) return null;
-  let matchingAsNumber: number | null = null;
-  let charStyle: CharStyle | null = null;
+  if (!matching) return null;
 
-  const filteredMatching = matching.filter(Boolean).map(trim).filter(Boolean);
+  const length = nullish(matching.get_length());
 
-  const [_, length, style] = filteredMatching;
-
-  if (length) {
-    matchingAsNumber = Number(length);
-
-    if (isNaN(matchingAsNumber)) {
-      matchingAsNumber = null;
-      charStyle = length.toLowerCase() as CharStyle;
-    }
-  }
-
-  if (style) {
-    if (!isNaN(parseInt(length))) {
-      charStyle = style.toLowerCase() as CharStyle;
-    }
-  }
+  const style = nullish(matching.get_style());
 
   return {
-    length: matchingAsNumber,
-    style: charStyle,
+    length,
+    style,
   };
 }
 
 function boolWithFrequencyExtract(type: string): number | null {
-  const matching = extractMapper.boolWithFrequencyExtract.exec(type);
+  const matching = extractors.bool_arguments_extract(type);
 
-  if (!matching) return null;
-
-  const filteredMatching = matching
-    .filter(Boolean)
-    .filter((m) => !isNaN(Number(trim(m))))
-    .map(trim)
-    .filter(Boolean);
-
-  const matchingAsNumber = Number(filteredMatching[0]);
-
-  if (isNaN(matchingAsNumber)) return null;
-
-  return matchingAsNumber;
+  return nullish(matching);
 }
 
-function dateWithFormatExtract(type: string): "iso" | "utc" | null {
-  const matching = extractMapper.dateWithFormatExtract.exec(type);
+function dateWithFormatExtract(type: string): string | null {
+  const matching = extractors.date_arguments_extract(type);
 
-  if (!matching) return null;
+  const format = nullish(matching);
 
-  const filteredMatching = matching.filter(Boolean).map(trim).filter(Boolean);
-
-  if (!filteredMatching[1]) return null;
-
-  const dateFormat = filteredMatching[1].toLowerCase();
-
-  return dateFormat as "iso" | "utc";
+  return format;
 }
 
 type ImageSize = {
-  width: string;
-  height: string;
+  width: number;
+  height: number;
 };
 
 function imageWithSizesExtract(type: string): ImageSize | null {
-  const matching = extractMapper.imageWithSizesExtract.exec(type);
-
-  const arraySizeMatcher = /(\s+)?\d+(\s+)?\,(\s+)?\d+(\s+)?/i;
+  const matching = extractors.image_arguments_extract(type);
 
   if (!matching) return null;
 
-  const filteredMatching = matching.filter(Boolean).map(trim).filter(Boolean);
+  const DEFAULT_SIZE = 100;
 
-  const sizes = filteredMatching[1];
+  const width = nullish(matching.get_width()) ?? DEFAULT_SIZE;
 
-  if (arraySizeMatcher.test(sizes)) {
-    const [width, height] = sizes.split(",").map(trim);
+  const height = nullish(matching.get_height()) ?? DEFAULT_SIZE;
 
-    return {
-      width,
-      height,
-    };
-  }
-
-  if (/\d+/i.test(trim(sizes))) {
-    return {
-      width: sizes,
-      height: sizes,
-    };
-  }
-
-  return null;
+  return { width, height };
 }
 
 export {
