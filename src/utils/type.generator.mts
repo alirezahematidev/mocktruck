@@ -1,56 +1,35 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import prettier from "prettier";
-import { fileURLToPath } from "url";
-import { typeMapper } from "../constants/model.enums.mjs";
+import { configMapping } from "../generators/index.mjs";
+import { configs } from "../interfaces/index.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
+const content = configMapping(configs);
 
-const __dirname = path.dirname(__filename);
+const p = path.resolve(process.cwd(), "./out");
 
-type ValueType<T extends object> = string | T | T[];
-
-type TypeParams = {
-  [param: string]: ValueType<TypeParams>;
+const emptyFolder = async (folderPath: string) => {
+  try {
+    const files = await fs.readdir(folderPath);
+    for (const file of files) {
+      await fs.unlink(path.resolve(folderPath, file));
+      console.log(`${folderPath}\\${file} has been removed successfully`);
+    }
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-function typeGenerator(params: TypeParams) {
-  let content = "";
+emptyFolder(p);
 
-  for (const key in params) {
-    const type = params[key];
-
-    if (Array.isArray(type)) {
-      return "";
-    }
-
-    if (typeof type === "object") return "";
-
-    if (type.includes("|")) {
-      const separated = type.split("|");
-
-      const mapped = separated.map((t) => typeMapper[t.trim()]);
-
-      const joined = mapped.join("|");
-
-      content += `${key}: ${joined};\n`;
-    } else {
-      content += `${key}: ${typeMapper[type]};\n`;
-    }
-  }
-
-  const typeContent = `type Model = {\n${content}\n}`;
-
-  const p = path.resolve(__dirname, ".");
-
-  prettier.resolveConfig(p).then((options) => {
+Object.keys(content).forEach((model) => {
+  const typeContent = `const ${model} = ${JSON.stringify(content[model])}`;
+  prettier.resolveConfig(p).then(async (options) => {
     const format = prettier.format(typeContent, {
       ...options,
       parser: "babel-ts",
     });
 
-    fs.writeFileSync(p + "/model.type.ts", format);
+    await fs.writeFile(p + `/${model}.data.ts`, format);
   });
-}
-
-export { typeGenerator };
+});

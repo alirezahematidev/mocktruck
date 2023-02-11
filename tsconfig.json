@@ -17,18 +17,11 @@
     "target": "esnext",
     "allowJs": true,
     "typeRoots": ["node_modules/@types", "jest"],
-    "baseUrl": "./src",
-    "paths": {
-      "@tests/*": ["./__tests__/*"],
-      "@externals": ["./externals/pkg/index.js"]
-    }
+    "types": ["node"]
   },
   "ts-node": {
     "esm": true,
-    "compilerOptions": {
-      "resolveJsonModule": true,
-      "esModuleInterop": true
-    }
+    "require": ["tsconfig-paths/register"]
   },
   "include": ["src", "src/typings.d.ts", "*.mts"],
   "exclude": ["node_modules", "lib", "bin"]

@@ -1,118 +1,189 @@
-import { randomInt, randomUUID } from "node:crypto";
+import * as generators from "../externals/pkg/index.js";
+import { Truck } from "../interfaces/index.mjs";
 
-function generateNumber(count: number = 8): number {
-  const _count = count <= 0 ? 8 : count;
-
-  const min = Math.pow(10, _count - 1);
-  const max = Math.pow(10, _count) - 1;
-
-  const value = randomInt(min, max);
-
-  return value;
+function isOptionEnabled<P extends Object>(obj: P | undefined): obj is P {
+  return Boolean(obj && Object.keys(obj).length !== 0);
 }
 
-function generateChar(
-  count: number = 8,
-  type?: "lowercase" | "uppercase",
-): string {
-  const _count = count <= 0 ? 8 : count;
-  let chars = "";
-  let result = "";
+/** @todo Rewrite this in rust */
+function casedString(
+  value: string,
+  cs?: "uppercase" | "lowercase" | "capitalize",
+) {
+  if (!cs) return value;
 
-  if (type === "lowercase") {
-    chars = "abcdefghijklmnopqrstuvwxyz";
-  } else if (type === "uppercase") {
-    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  } else {
-    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  let _value = value;
+
+  if (cs === "lowercase") {
+    _value = value.slice().toLowerCase();
   }
 
-  for (let i = 0; i < _count; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-function generateBool(frequency: number = 0.5): true | false {
-  if (frequency <= 0) return false;
-
-  if (frequency >= 1) return true;
-
-  return Math.random() >= frequency;
-}
-
-function generateUUID(): string {
-  return randomUUID();
-}
-
-function generateEmail(): string {
-  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-  const providers = ["gmail", "yahoo"];
-
-  let email = "";
-
-  for (let i = 0; i < 10; i++) {
-    email += characters.charAt(Math.floor(Math.random() * characters.length));
+  if (cs === "uppercase") {
+    _value = value.slice().toUpperCase();
   }
 
-  email += "@";
-  email += providers[Math.floor(Math.random() * providers.length)];
-  email += ".com";
-
-  return email;
-}
-
-function generateURL(): string {
-  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let url = "";
-
-  let sfx = [".com", ".org", ".edu", ".gov", ".co", ".io"];
-
-  let randomSuffix = sfx[Math.floor(Math.random() * sfx.length)];
-
-  url += "http" + (Math.floor(Math.random() * 2) == 0 ? "" : "s") + "://";
-
-  for (let i = 0; i < 12; i++) {
-    url += characters.charAt(Math.floor(Math.random() * characters.length));
+  if (cs === "capitalize") {
+    _value = value;
   }
-  url += randomSuffix;
 
-  return url;
+  return _value;
 }
 
-function generateISODate(): string {
-  let start = new Date(1800, 0, 1);
-  let end = new Date();
+function configMapping(config: Truck.Configuration) {
+  const result = new Map<any, any>();
+  const models = config.models;
 
-  let randomTimestamp =
-    start.getTime() + Math.random() * (end.getTime() - start.getTime());
+  function schemaMapping(schema: Truck.Schema): any {
+    const properties = Object.keys(schema);
 
-  let randomDate = new Date(randomTimestamp);
+    const a = properties.map((property) => {
+      const type = schema[property].type;
 
-  return randomDate.toISOString();
+      if (type === "firstname") {
+        const s = schema[property] as Truck.NameSchema;
+
+        let firstname = generators.generate_firstname();
+
+        const casedFirstname = casedString(firstname, s.case);
+
+        return [property, casedFirstname];
+      }
+
+      if (type === "lastname") {
+        const s = schema[property] as Truck.NameSchema;
+
+        let lastname = generators.generate_lastname();
+
+        const casedLastname = casedString(lastname, s.case);
+
+        return [property, casedLastname];
+      }
+
+      if (type === "digits") {
+        const s = schema[property] as Truck.NumberSchema;
+
+        return [
+          property,
+          Number.parseInt(generators.generate_number(s.length || 8).toString()),
+        ];
+      }
+
+      if (type === "array") {
+        const s = schema[property] as Truck.ArraySchema;
+
+        const length = s.count ?? 10;
+
+        const autoGenerateId = s.autoGenerateId;
+
+        const list = Array.from({ length }, () => schemaMapping(s.schema));
+
+        if (isOptionEnabled(autoGenerateId)) {
+          const field = autoGenerateId.field ?? "id";
+
+          const strategy = autoGenerateId.strategy ?? "uuid";
+
+          /** @todo Non object entities */
+          const isFieldDuplicated = list.find((obj) =>
+            Object.hasOwn(obj, field),
+          );
+
+          if (!isFieldDuplicated) {
+            function generate(index: number) {
+              if (strategy === "autoincrement") {
+                return index + 1;
+              }
+
+              return generators.generate_uuid();
+            }
+
+            const listIncludedId = list.map((obj, index) => ({
+              [field]: generate(index),
+              ...obj,
+            }));
+
+            return [property, listIncludedId];
+          }
+        }
+
+        return [property, list];
+      }
+
+      if (type === "object") {
+        const s = schema[property] as Truck.ObjectSchema;
+
+        return [property, schemaMapping(s.schema)];
+      }
+
+      if (type === "date") {
+        const s = schema[property] as Truck.DateSchema;
+
+        const format = s.format;
+
+        let randomDate = "";
+
+        if (format === "UTC") {
+          randomDate = generators.generate_utc_date();
+        } else {
+          randomDate = generators.generate_iso_date();
+        }
+
+        return [property, randomDate];
+      }
+
+      return [property, generators[`generate_${type}`]()];
+    });
+
+    return Object.fromEntries(a);
+  }
+
+  models.forEach((model) => {
+    const name = model.name;
+
+    const options = model.options ?? {};
+
+    const schema = model.schema;
+
+    const listOptions = options.listOptions;
+
+    if (isOptionEnabled(listOptions)) {
+      const length = listOptions.count ?? 10;
+
+      const autoGenerateId = listOptions.autoGenerateId;
+
+      const list = Array.from({ length }, () => schemaMapping(schema));
+
+      if (isOptionEnabled(autoGenerateId)) {
+        const field = autoGenerateId.field ?? "id";
+
+        const strategy = autoGenerateId.strategy ?? "uuid";
+
+        /** @todo Non object entities */
+        const isFieldDuplicated = list.find((obj) => Object.hasOwn(obj, field));
+
+        if (!isFieldDuplicated) {
+          function generate(index: number) {
+            if (strategy === "autoincrement") {
+              return index + 1;
+            }
+
+            return generators.generate_uuid();
+          }
+
+          const listIncludedId = list.map((obj, index) => ({
+            [field]: generate(index),
+            ...obj,
+          }));
+
+          return result.set(name, listIncludedId);
+        }
+      }
+
+      return result.set(name, list);
+    }
+
+    result.set(name, schemaMapping(schema));
+  });
+  return Object.fromEntries(result.entries());
 }
-function generateUTCDate(): string {
-  let start = new Date(1800, 0, 1);
-  let end = new Date();
-  let randomTimestamp =
-    start.getTime() + Math.random() * (end.getTime() - start.getTime());
-  let randomDate = new Date(randomTimestamp);
-  return randomDate.toUTCString();
-}
 
-function generateImage(w: string, h?: string): string {
-  return `https://loremflickr.com/${w}/${h ? h : w}`;
-}
-
-export {
-  generateBool,
-  generateChar,
-  generateNumber,
-  generateUUID,
-  generateEmail,
-  generateURL,
-  generateISODate,
-  generateUTCDate,
-  generateImage,
-};
+export { configMapping };

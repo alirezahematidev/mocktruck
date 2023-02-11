@@ -17,20 +17,20 @@ type CharExtractObject = {
   style: string | null;
 };
 
-function charWithLengthExtract(type: string): CharExtractObject | null {
-  const matching = extractors.char_arguments_extract(type);
+// function charWithLengthExtract(type: string): CharExtractObject | null {
+//   const matching = extractors.char_arguments_extract(type);
 
-  if (!matching) return null;
+//   if (!matching) return null;
 
-  const length = nullish(matching.get_length());
+//   const length = nullish(matching.get_length());
 
-  const style = nullish(matching.get_style());
+//   const style = nullish(matching.get_style());
 
-  return {
-    length,
-    style,
-  };
-}
+//   return {
+//     length,
+//     style,
+//   };
+// }
 
 function boolWithFrequencyExtract(type: string): number | null {
   const matching = extractors.bool_arguments_extract(type);
@@ -67,7 +67,6 @@ function imageWithSizesExtract(type: string): ImageSize | null {
 
 export {
   numberWithLengthExtract,
-  charWithLengthExtract,
   boolWithFrequencyExtract,
   dateWithFormatExtract,
   imageWithSizesExtract,

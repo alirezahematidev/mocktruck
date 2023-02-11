@@ -6,7 +6,7 @@ import {
   NumberErrWithLength,
   NumberWithLength,
 } from "./helpers.type";
-import * as matchers from "@externals";
+import * as matchers from "../../externals/pkg/index";
 
 //number annotation
 function isNumber(type: string): type is "number" {
