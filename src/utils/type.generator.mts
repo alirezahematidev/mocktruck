@@ -4,7 +4,7 @@ import prettier from "prettier";
 import { configMapping } from "../generators/index.mjs";
 import { configs } from "../interfaces/index.mjs";
 
-const content = configMapping(configs);
+const { mock, type } = configMapping(configs);
 
 const p = path.resolve(process.cwd(), "./out");
 
@@ -22,14 +22,29 @@ const emptyFolder = async (folderPath: string) => {
 
 emptyFolder(p);
 
-Object.keys(content).forEach((model) => {
-  const typeContent = `const ${model} = ${JSON.stringify(content[model])}`;
+Object.keys(mock).forEach((model) => {
+  const typeName = model.slice(0, 1).toUpperCase() + model.slice(1);
+
+  const _type = `type ${typeName} = {\n${type}\n};\n
+  export type {${typeName}};
+  `;
+
+  const _mock = `import {${typeName}} from "./${model}.type";\n
+    const ${model}: ${typeName} = ${JSON.stringify(mock[model])};\n
+    export {${model}};
+    `;
+
   prettier.resolveConfig(p).then(async (options) => {
-    const format = prettier.format(typeContent, {
+    const formattedMock = prettier.format(_mock, {
+      ...options,
+      parser: "babel-ts",
+    });
+    const formattedType = prettier.format(_type, {
       ...options,
       parser: "babel-ts",
     });
 
-    await fs.writeFile(p + `/${model}.data.ts`, format);
+    await fs.writeFile(p + `/${model}.data.ts`, formattedMock);
+    await fs.writeFile(p + `/${model}.type.ts`, formattedType);
   });
 });

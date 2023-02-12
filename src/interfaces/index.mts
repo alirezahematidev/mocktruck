@@ -116,15 +116,22 @@ export const configs: Truck.Configuration = {
     {
       name: "users",
       schema: {
-        firstname: { type: "firstname", case: "lowercase" },
+        firstname: { type: "firstname", case: "lowercase", required: true },
         lastname: {
           type: "lastname",
+          required: true,
         },
         email: {
           type: "email",
+          required: true,
+        },
+        age: {
+          type: "digits",
+          length: 2,
         },
         bio: {
           type: "paragraph",
+          nullable: true,
         },
         createDate: {
           type: "date",
@@ -135,12 +142,15 @@ export const configs: Truck.Configuration = {
         },
         location: {
           type: "object",
+          required: true,
           schema: {
             city: {
               type: "word",
+              nullable: true,
             },
             country: {
               type: "word",
+              nullable: true,
             },
           },
         },

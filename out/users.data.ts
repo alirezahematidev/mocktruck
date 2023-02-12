@@ -1,9 +1,14 @@
-const users = {
-  firstname: "ora",
-  lastname: "Bashirian",
-  email: "fhansen4@breitenberg.org",
-  bio: "Est reiciendis placeat ipsum atque. Nisi illo inventore mollitia fugiat doloremque. Ut atque molestiae et id. Qui enim quaerat. Consequatur id quae nemo aperiam et nihil.",
-  createDate: "2015-11-12T06:17:59.000Z",
-  publishedDate: "Sat, 18 Nov 2000 12:50:57 +0000",
-  location: { city: "inventore", country: "eum" },
+import { Users } from "./users.type";
+
+const users: Users = {
+  firstname: "icie",
+  lastname: "Gusikowski",
+  email: "qrohan38@christiansen.org",
+  age: 42,
+  bio: "Sed quis et necessitatibus et. Veniam veritatis ut non ea. Quasi vitae accusamus quidem amet aut sit. Neque autem repudiandae non qui autem a.",
+  createDate: "2012-10-23T03:53:12.000Z",
+  publishedDate: "Sun, 08 Dec 2013 20:07:23 +0000",
+  location: { city: "nemo", country: "suscipit" },
 };
+
+export { users };
