@@ -5,11 +5,13 @@ export namespace Truck {
 
   type InternetTypeOptions = "email" | "domain";
 
-  type LoremTypeOptions = "word" | "sentence" | "paragraph";
+  type LoremTypeOptions = "word" | "sentence" | "paragraph" | "paragraphs";
 
   type UuidTypeOptions = "uuid";
 
   type NumberTypeOptions = "digits";
+
+  type BoolTypeOptions = "boolean";
 
   type CharTypeOptions = NameTypeOptions | LoremTypeOptions;
 
@@ -22,7 +24,7 @@ export namespace Truck {
     nullable?: boolean;
   };
 
-  type AutoGenerateIdOptions = {
+  export type AutoGenerateIdOptions = {
     field?: string;
     strategy?: "uuid" | "autoincrement";
   };
@@ -35,6 +37,7 @@ export namespace Truck {
   interface GlobalOptions {
     generateEnumsAsType?: boolean;
     generateSeparateSchemaType?: boolean;
+    defaultListCount?: number;
     requiredFields?: boolean;
     nullableFields?: boolean;
   }
@@ -44,15 +47,16 @@ export namespace Truck {
   }
 
   type SchemaOptions =
-    | NameSchema
+    | CharSchema
     | ArraySchema
     | ObjectSchema
     | NumberSchema
     | UuidSchema
     | InternetSchema
-    | DateSchema;
+    | DateSchema
+    | BoolSchema;
 
-  type ConfigModel = {
+  export type ConfigModel = {
     name: string;
     schema: Schema;
     options?: Options;
@@ -69,7 +73,7 @@ export namespace Truck {
     [property: string]: SchemaOptions;
   }
 
-  export interface NameSchema extends SharedTypeOptions {
+  export interface CharSchema extends SharedTypeOptions {
     readonly type: CharTypeOptions;
     case?: "uppercase" | "lowercase" | "capitalize";
   }
@@ -96,13 +100,17 @@ export namespace Truck {
   export interface InternetSchema extends SharedTypeOptions {
     readonly type: InternetTypeOptions;
   }
+  export interface BoolSchema extends SharedTypeOptions {
+    readonly type: BoolTypeOptions;
+    frequency?: number;
+  }
   export interface DateSchema extends SharedTypeOptions {
     readonly type: DateTypeOptions;
     format?: "ISO" | "UTC";
   }
 
   export interface Configuration {
-    models: Array<ConfigModel>;
+    models: ConfigModel | Array<ConfigModel>;
     globalOptions?: GlobalOptions;
     requests?: RequestOptions;
     output?: string;
@@ -112,49 +120,41 @@ export namespace Truck {
 }
 
 export const configs: Truck.Configuration = {
-  models: [
-    {
-      name: "users",
-      schema: {
-        firstname: { type: "firstname", case: "lowercase", required: true },
-        lastname: {
-          type: "lastname",
-          required: true,
-        },
-        email: {
-          type: "email",
-          required: true,
-        },
-        age: {
-          type: "digits",
-          length: 2,
-        },
-        bio: {
-          type: "paragraph",
-          nullable: true,
-        },
-        createDate: {
-          type: "date",
-        },
-        publishedDate: {
-          type: "date",
-          format: "UTC",
-        },
-        location: {
-          type: "object",
-          required: true,
-          schema: {
-            city: {
-              type: "word",
-              nullable: true,
-            },
-            country: {
-              type: "word",
-              nullable: true,
-            },
-          },
+  models: {
+    name: "users",
+    options: {
+      listOptions: {
+        count: 10,
+        autoGenerateId: {
+          field: "userId",
+          strategy: "autoincrement",
         },
       },
     },
-  ],
+    schema: {
+      fullname: {
+        type: "fullname",
+        case: "lowercase",
+      },
+      email: {
+        type: "email",
+        required: true,
+      },
+      age: {
+        type: "digits",
+        length: 2,
+      },
+      bio: {
+        type: "paragraph",
+        nullable: true,
+      },
+      createDate: {
+        type: "date",
+      },
+      publishedDate: {
+        type: "date",
+        format: "UTC",
+      },
+    },
+  },
 };

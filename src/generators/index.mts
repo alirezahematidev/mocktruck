@@ -1,36 +1,9 @@
-import * as generators from "../externals/pkg/index.js";
 import { Truck } from "../interfaces/index.mjs";
-
-function isOptionEnabled<P extends Object>(obj: P | undefined): obj is P {
-  return Boolean(obj && Object.keys(obj).length !== 0);
-}
-
-/** @todo Rewrite this in rust */
-function casedString(
-  value: string,
-  cs?: "uppercase" | "lowercase" | "capitalize",
-) {
-  if (!cs) return value;
-
-  let _value = value;
-
-  if (cs === "lowercase") {
-    _value = value.slice().toLowerCase();
-  }
-
-  if (cs === "uppercase") {
-    _value = value.slice().toUpperCase();
-  }
-
-  if (cs === "capitalize") {
-    _value = value;
-  }
-
-  return _value;
-}
+import { isArray, parseIterable } from "../misc/index.mjs";
+import { Builder } from "./builder.mjs";
 
 function configMapping(config: Truck.Configuration) {
-  const mockMap = new Map<any, any>();
+  // const mockMap = new Map<any, any>();
   let typeSet: string = "";
   const models = config.models;
 
@@ -89,7 +62,7 @@ function configMapping(config: Truck.Configuration) {
       }
 
       if (type === "firstname") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -98,7 +71,7 @@ function configMapping(config: Truck.Configuration) {
       }
 
       if (type === "lastname") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -143,7 +116,7 @@ function configMapping(config: Truck.Configuration) {
       }
 
       if (type === "fullname") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -151,7 +124,7 @@ function configMapping(config: Truck.Configuration) {
         return `${property}${ra}:string ${na};\n`;
       }
       if (type === "paragraph") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -159,7 +132,7 @@ function configMapping(config: Truck.Configuration) {
         return `${property}${ra}:string ${na};\n`;
       }
       if (type === "sentence") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -168,7 +141,7 @@ function configMapping(config: Truck.Configuration) {
       }
 
       if (type === "uuid") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -177,7 +150,7 @@ function configMapping(config: Truck.Configuration) {
       }
 
       if (type === "word") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -186,7 +159,7 @@ function configMapping(config: Truck.Configuration) {
       }
 
       if (type === "array") {
-        const s = schema[property] as Truck.NameSchema;
+        const s = schema[property] as Truck.CharSchema;
 
         const ra = s.required ? "" : "?";
         const na = s.nullable ? "| null" : "";
@@ -200,162 +173,61 @@ function configMapping(config: Truck.Configuration) {
     return b.join("");
   }
 
-  function schemaMapping(schema: Truck.Schema): any {
-    const properties = Object.keys(schema);
+  Builder.iterate(parseIterable(models));
 
-    const a = properties.map((property) => {
-      const type = schema[property].type;
+  // models.forEach((model) => {
+  //   const name = model.name;
 
-      if (type === "array") {
-        const s = schema[property] as Truck.ArraySchema;
+  //   const options = model.options ?? {};
 
-        const length = s.count ?? 10;
+  //   const schema = model.schema;
 
-        const autoGenerateId = s.autoGenerateId;
+  //   const listOptions = options.listOptions;
 
-        const list = Array.from({ length }, () => schemaMapping(s.schema));
+  //   if (isOptionEnabled(listOptions)) {
+  //     const length = listOptions.count ?? 10;
 
-        if (isOptionEnabled(autoGenerateId)) {
-          const field = autoGenerateId.field ?? "id";
+  //     const autoGenerateId = listOptions.autoGenerateId;
 
-          const strategy = autoGenerateId.strategy ?? "uuid";
+  //     const list = Array.from({ length }, () => schemaMapping(schema));
 
-          /** @todo Non object entities */
-          const isFieldDuplicated = list.find((obj) =>
-            Object.hasOwn(obj, field),
-          );
+  //     if (isOptionEnabled(autoGenerateId)) {
+  //       const field = autoGenerateId.field ?? "id";
 
-          if (!isFieldDuplicated) {
-            function generate(index: number) {
-              if (strategy === "autoincrement") {
-                return index + 1;
-              }
+  //       const strategy = autoGenerateId.strategy ?? "uuid";
 
-              return generators.generate_uuid();
-            }
+  //       /** @todo Non object entities */
+  //       const isFieldDuplicated = list.find((obj) => Object.hasOwn(obj, field));
 
-            const listIncludedId = list.map((obj, index) => ({
-              [field]: generate(index),
-              ...obj,
-            }));
+  //       if (!isFieldDuplicated) {
+  //         function generate(index: number) {
+  //           if (strategy === "autoincrement") {
+  //             return index + 1;
+  //           }
 
-            return [property, listIncludedId];
-          }
-        }
+  //           return generators.generate_uuid();
+  //         }
 
-        return [property, list];
-      }
+  //         const listIncludedId = list.map((obj, index) => ({
+  //           [field]: generate(index),
+  //           ...obj,
+  //         }));
 
-      if (type === "object") {
-        const s = schema[property] as Truck.ObjectSchema;
+  //         return mockMap.set(name, listIncludedId);
+  //       }
+  //     }
 
-        return [property, schemaMapping(s.schema)];
-      }
+  //     return mockMap.set(name, list);
+  //   }
+  //   console.log({ fff: typeMapping(schema) });
+  //   typeSet += typeMapping(schema);
 
-      if (type === "firstname") {
-        const s = schema[property] as Truck.NameSchema;
-
-        let firstname = generators.generate_firstname();
-
-        const casedFirstname = casedString(firstname, s.case);
-
-        return [property, casedFirstname];
-      }
-
-      if (type === "lastname") {
-        const s = schema[property] as Truck.NameSchema;
-
-        let lastname = generators.generate_lastname();
-
-        const casedLastname = casedString(lastname, s.case);
-
-        return [property, casedLastname];
-      }
-
-      if (type === "digits") {
-        const s = schema[property] as Truck.NumberSchema;
-
-        return [
-          property,
-          Number.parseInt(generators.generate_number(s.length || 8).toString()),
-        ];
-      }
-
-      if (type === "date") {
-        const s = schema[property] as Truck.DateSchema;
-
-        const format = s.format;
-
-        let randomDate = "";
-
-        if (format === "UTC") {
-          randomDate = generators.generate_utc_date();
-        } else {
-          randomDate = generators.generate_iso_date();
-        }
-
-        return [property, randomDate];
-      }
-
-      return [property, generators[`generate_${type}`]()];
-    });
-
-    return Object.fromEntries(a);
-  }
-
-  models.forEach((model) => {
-    const name = model.name;
-
-    const options = model.options ?? {};
-
-    const schema = model.schema;
-
-    const listOptions = options.listOptions;
-
-    if (isOptionEnabled(listOptions)) {
-      const length = listOptions.count ?? 10;
-
-      const autoGenerateId = listOptions.autoGenerateId;
-
-      const list = Array.from({ length }, () => schemaMapping(schema));
-
-      if (isOptionEnabled(autoGenerateId)) {
-        const field = autoGenerateId.field ?? "id";
-
-        const strategy = autoGenerateId.strategy ?? "uuid";
-
-        /** @todo Non object entities */
-        const isFieldDuplicated = list.find((obj) => Object.hasOwn(obj, field));
-
-        if (!isFieldDuplicated) {
-          function generate(index: number) {
-            if (strategy === "autoincrement") {
-              return index + 1;
-            }
-
-            return generators.generate_uuid();
-          }
-
-          const listIncludedId = list.map((obj, index) => ({
-            [field]: generate(index),
-            ...obj,
-          }));
-
-          return mockMap.set(name, listIncludedId);
-        }
-      }
-
-      return mockMap.set(name, list);
-    }
-    console.log({ fff: typeMapping(schema) });
-    typeSet += typeMapping(schema);
-
-    // typesMap.set(name, typeMapping(schema));
-    mockMap.set(name, schemaMapping(schema));
-  });
+  //   // typesMap.set(name, typeMapping(schema));
+  //   mockMap.set(name, schemaMapping(schema));
+  // });
   const type = typeSet;
 
-  const mock = Object.fromEntries(mockMap.entries());
+  const mock = Builder.mock();
 
   return { type, mock };
 }
