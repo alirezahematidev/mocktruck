@@ -1,0 +1,28 @@
+import { TypeNotation } from "../constants/notations.enum.mjs";
+
+export type IPrimitive = string | number | bigint | boolean;
+
+export type IObject = Record<string, IPrimitive>;
+
+export type IArray = IObject[];
+
+export type IComplex = IPrimitive | IObject | IArray;
+
+export type IReturnArray = [string, IArray];
+
+export type IReturnPrimitive = [string, IPrimitive];
+
+export type IReturnObject = [string, IObject];
+
+export type IMapping = [string, IComplex];
+
+export type IReturnEntries = Record<string, IComplex>;
+
+export type IMock = IReturnEntries | IReturnEntries[];
+
+export type IType = Record<string, string>;
+
+export type TypedProperty = {
+  property: string;
+  notation: TypeNotation;
+};

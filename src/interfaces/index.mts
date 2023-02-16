@@ -9,7 +9,7 @@ export namespace Truck {
 
   type UuidTypeOptions = "uuid";
 
-  type NumberTypeOptions = "digits";
+  type DigitTypeOptions = "digits" | "bigint";
 
   type BoolTypeOptions = "boolean";
 
@@ -17,10 +17,10 @@ export namespace Truck {
 
   type ArrayTypeOptions = "array";
 
-  type ObjectTypeOptions = "object";
+  type StructTypeOptions = "object";
 
-  type SharedTypeOptions = {
-    required?: boolean;
+  export type SharedTypeOptions = {
+    optional?: boolean;
     nullable?: boolean;
   };
 
@@ -29,7 +29,7 @@ export namespace Truck {
     strategy?: "uuid" | "autoincrement";
   };
 
-  type ListOptions = {
+  export type ListOptions = {
     count?: number;
     autoGenerateId?: AutoGenerateIdOptions;
   };
@@ -47,14 +47,14 @@ export namespace Truck {
   }
 
   type SchemaOptions =
-    | CharSchema
-    | ArraySchema
-    | ObjectSchema
-    | NumberSchema
-    | UuidSchema
-    | InternetSchema
-    | DateSchema
-    | BoolSchema;
+    | TChar
+    | TArray
+    | TStruct
+    | TDigit
+    | TUuid
+    | TInternet
+    | TDate
+    | TBool;
 
   export type ConfigModel = {
     name: string;
@@ -73,38 +73,38 @@ export namespace Truck {
     [property: string]: SchemaOptions;
   }
 
-  export interface CharSchema extends SharedTypeOptions {
+  export interface TChar extends SharedTypeOptions {
     readonly type: CharTypeOptions;
     case?: "uppercase" | "lowercase" | "capitalize";
   }
 
-  export interface ArraySchema extends SharedTypeOptions {
+  export interface TArray extends SharedTypeOptions {
     readonly type: ArrayTypeOptions;
     schema: Schema;
     autoGenerateId?: AutoGenerateIdOptions;
     count?: number;
   }
 
-  export interface ObjectSchema extends SharedTypeOptions {
-    readonly type: ObjectTypeOptions;
+  export interface TStruct extends SharedTypeOptions {
+    readonly type: StructTypeOptions;
     schema: Schema;
   }
 
-  export interface NumberSchema extends SharedTypeOptions {
-    readonly type: NumberTypeOptions;
+  export interface TDigit extends SharedTypeOptions {
+    readonly type: DigitTypeOptions;
     length?: number;
   }
-  export interface UuidSchema extends SharedTypeOptions {
+  export interface TUuid extends SharedTypeOptions {
     readonly type: UuidTypeOptions;
   }
-  export interface InternetSchema extends SharedTypeOptions {
+  export interface TInternet extends SharedTypeOptions {
     readonly type: InternetTypeOptions;
   }
-  export interface BoolSchema extends SharedTypeOptions {
+  export interface TBool extends SharedTypeOptions {
     readonly type: BoolTypeOptions;
     frequency?: number;
   }
-  export interface DateSchema extends SharedTypeOptions {
+  export interface TDate extends SharedTypeOptions {
     readonly type: DateTypeOptions;
     format?: "ISO" | "UTC";
   }
@@ -120,41 +120,58 @@ export namespace Truck {
 }
 
 export const configs: Truck.Configuration = {
-  models: {
-    name: "users",
-    options: {
-      listOptions: {
-        count: 10,
-        autoGenerateId: {
-          field: "userId",
-          strategy: "autoincrement",
+  models: [
+    {
+      name: "users",
+      options: {
+        listOptions: {
+          count: 5,
+          autoGenerateId: {
+            field: "userId",
+            strategy: "autoincrement",
+          },
+        },
+      },
+      schema: {
+        email: {
+          type: "email",
+        },
+        firstname: {
+          type: "firstname",
+        },
+        employees: {
+          type: "array",
+          autoGenerateId: {
+            field: "employeeId",
+            strategy: "autoincrement",
+          },
+          schema: {
+            name: {
+              type: "firstname",
+            },
+          },
         },
       },
     },
-    schema: {
-      fullname: {
-        type: "fullname",
-        case: "lowercase",
+    {
+      name: "posts",
+      options: {
+        listOptions: {
+          count: 5,
+          autoGenerateId: {
+            field: "userId",
+            strategy: "autoincrement",
+          },
+        },
       },
-      email: {
-        type: "email",
-        required: true,
-      },
-      age: {
-        type: "digits",
-        length: 2,
-      },
-      bio: {
-        type: "paragraph",
-        nullable: true,
-      },
-      createDate: {
-        type: "date",
-      },
-      publishedDate: {
-        type: "date",
-        format: "UTC",
+      schema: {
+        email: {
+          type: "email",
+        },
+        firstname: {
+          type: "firstname",
+        },
       },
     },
-  },
+  ],
 };

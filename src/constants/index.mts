@@ -1,23 +1,31 @@
-const DEFAULT_LENGTH = 10;
+export const LENGTH = 10;
 
-const DEFAULT_DIGIT = 8;
+export const DIGIT = 8;
 
-const DEFAULT_FIELD = "id";
+export const FIELD = "id";
 
-const DEFAULT_STRATEGY = "uuid";
+export const STRATEGY = "uuid";
 
-const DEFAULT_FREQ = 0.5;
+export const FREQ = 0.5;
 
-const UNKNOWN = "!unknown";
+export const UNKNOWN = "!unknown";
 
-const noop = () => {};
+export const IM = "import";
 
-export {
-  DEFAULT_LENGTH,
-  DEFAULT_FIELD,
-  DEFAULT_STRATEGY,
-  DEFAULT_DIGIT,
-  DEFAULT_FREQ,
-  UNKNOWN,
-  noop,
-};
+export const EX = "export";
+
+export const BR = "\n";
+
+export const EQ = "=";
+
+export const EMPTY = "";
+
+export const END = ";" + BR;
+
+export const BRACKET = "[]";
+
+export const BRACES = {};
+
+export const ZERO = 0;
+
+export const NOOP = () => {};
