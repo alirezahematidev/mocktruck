@@ -5,3 +5,4 @@ dist
 .env
 src/externals/target
 Cargo.lock
+out

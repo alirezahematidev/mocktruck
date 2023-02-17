@@ -1,11 +1,11 @@
 import { Posts } from "./type";
 
 const posts: Posts[] = [
-  { userId: 1, email: "fbradtke@dach.info", firstname: "Preston" },
-  { userId: 2, email: "eziemann1@walter.name", firstname: "Penelope" },
-  { userId: 3, email: "fdouglas61@wolf.name", firstname: "Amiya" },
-  { userId: 4, email: "oweissnat@schmitt.net", firstname: "Hayden" },
-  { userId: 5, email: "rbarton1@satterfield.com", firstname: "Edyth" },
+  { userId: 1, email: "kwest8@hirthe.com", firstname: "Yazmin" },
+  { userId: 2, email: "cmurphy@jaskolski.net", firstname: "Alexzander" },
+  { userId: 3, email: "hsimonis1@simonis.info", firstname: "Jacinthe" },
+  { userId: 4, email: "adavis67@satterfield.org", firstname: "Ezra" },
+  { userId: 5, email: "yoconner0@murray.info", firstname: "Anahi" },
 ];
 
 export { posts };

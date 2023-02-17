@@ -7,6 +7,7 @@ import {
   EQ,
   EX,
   IM,
+  EMPTY,
 } from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import * as generators from "../externals/pkg/index.js";
@@ -243,21 +244,40 @@ export function typedRaw(name: string, type: string) {
   return sumString(def, BR, exp);
 }
 
-export function mockedRaw(
-  input: string,
-  name: string,
-  typeName: string,
-  isArray: boolean,
-) {
-  const imp = sumString(IM, braces(typeName), "from", `"./type"`, END);
-  const def = sumString(
-    "const",
-    typedDef(name, typeName, isArray),
-    EQ,
-    input,
-    END,
-  );
-  const exp = sumString(EX, braces(name));
+type MockedRaw = {
+  input: string;
+  model: string;
+  typeName: string;
+  isArray: boolean;
+  withTypes?: boolean;
+};
+
+export function mockedRaw(m: MockedRaw) {
+  let imp = sumString(IM, braces(m.typeName), "from", `"./type"`, END);
+
+  if (!m.withTypes) {
+    imp = EMPTY;
+  }
+
+  const typeDef = typedDef(m.model, m.typeName, m.isArray);
+
+  const defExp = m.withTypes ? typeDef : m.model;
+
+  const def = sumString("const", defExp, EQ, m.input, END);
+
+  const exp = sumString(EX, braces(m.model));
 
   return sumString(imp, BR, def, BR, exp);
+}
+
+export function compareString(base: string, target: string) {
+  return base.toLowerCase() === target.toLowerCase();
+}
+
+export function compareAndFilter(base: string[], target: string[]) {
+  return base.filter((b) => target.some((t) => compareString(b, t)));
+}
+
+export function joinString(first: string, second: string) {
+  return sumString(first, "_", second);
 }

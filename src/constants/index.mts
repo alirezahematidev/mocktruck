@@ -1,3 +1,5 @@
+import clone from "lodash/cloneDeep.js";
+
 export const LENGTH = 10;
 
 export const DIGIT = 8;
@@ -23,8 +25,6 @@ export const EMPTY = "";
 export const END = ";" + BR;
 
 export const BRACKET = "[]";
-
-export const BRACES = {};
 
 export const ZERO = 0;
 

@@ -5,14 +5,18 @@ import * as c from "../constants/index.mjs";
 import * as T from "./types.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import { TypeMaker } from "./utilities.class.mjs";
+import isEqual from "lodash/isEqual.js";
+import { Logger } from "../log/index.mjs";
 
 /** @todo Implemented specific types for struct properties */
 /** @todo Implemented specific types for list properties */
 /** @todo Clean code mocked logic functionalities */
 
 class Builder {
+  private static logger = new Logger();
   private static map = new Map<string, T.IMock>();
-  private static type: T.IType = c.BRACES;
+  private static type: T.IType = {};
+  private static options: T.IOptions = {};
   private static count: number = c.ZERO;
   private static isArray: boolean = false;
 
@@ -21,25 +25,28 @@ class Builder {
 
     const isArray = Builder.isArray;
 
-    return { data, isArray };
+    return Object.freeze({ data, isArray });
   }
 
   public static types(model: string) {
     return (Builder.type[model] || c.EMPTY).trim();
   }
 
-  private static extendType(model: string, type: string) {
-    if (typeof Builder.type[model] === "undefined") {
-      Builder.type[model] = c.EMPTY;
-    }
+  public static modelOptions(model: string): Truck.Options | undefined {
+    const options = Builder.options[model];
 
-    Builder.type[model] += type;
+    if (!misc.isOptionEnabled(options)) return undefined;
+
+    return options;
+  }
+
+  public static get loggerInstance() {
+    return Builder.logger;
   }
 
   private static build(schema: Truck.Schema): T.IReturnEntries {
     try {
       const properties = misc.getKeys(schema);
-
       const entries = properties.map((property) => {
         const type = schema[property].type;
 
@@ -262,6 +269,8 @@ class Builder {
 
         const listOptions = options.listOptions;
 
+        Builder.declareOptions(name, options);
+
         if (misc.isOptionEnabled(listOptions)) {
           Builder.isArray = true;
 
@@ -274,7 +283,7 @@ class Builder {
           if (!misc.isOptionEnabled(autoGenerateId)) {
             Builder.extendType(name, Builder.typing(schema));
 
-            return Builder.map.set(name, list);
+            return Builder.update(name, list);
           }
 
           const mappedList = Builder.autoGenerateIdMapper(list, autoGenerateId);
@@ -286,26 +295,50 @@ class Builder {
 
           Builder.extendType(name, modifiedTyping);
 
-          return Builder.map.set(name, mappedList || list);
+          return Builder.update(name, mappedList || list);
         }
 
         Builder.extendType(name, Builder.typing(schema));
 
-        Builder.map.set(name, Builder.build(schema));
+        Builder.update(name, Builder.build(schema));
       });
     } catch (error) {
       throw error;
     }
   }
 
-  static configure(configs: Truck.Configuration) {
+  static configure(configs: Truck.Configuration): Truck.ConfigurationOptions {
     try {
       const models = configs.models;
 
       Builder.iterate(misc.parseIterable(models));
+
+      return configs;
     } catch (error) {
       throw error;
     }
+  }
+
+  private static extendType(model: string, type: string) {
+    if (typeof Builder.type[model] === "undefined") {
+      Builder.type[model] = c.EMPTY;
+    }
+
+    Builder.type[model] += type;
+  }
+
+  private static declareOptions(name: string, options: Truck.Options) {
+    Builder.options[name] = options;
+  }
+
+  private static update(name: string, entries: T.IMock) {
+    const prevEnteries = Builder.map.get(name);
+
+    const equal = isEqual(prevEnteries, entries);
+
+    if (equal) return;
+
+    Builder.map.set(name, entries);
   }
 
   private static autoGenerateIdMapper(

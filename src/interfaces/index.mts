@@ -34,15 +34,19 @@ export namespace Truck {
     autoGenerateId?: AutoGenerateIdOptions;
   };
 
-  interface GlobalOptions {
+  export interface GlobalOptions {
     generateEnumsAsType?: boolean;
     generateSeparateSchemaType?: boolean;
     defaultListCount?: number;
     requiredFields?: boolean;
     nullableFields?: boolean;
+    typesFileName?: string;
+    mockFileName?: string;
+    clean?: boolean;
+    useTypes?: boolean;
   }
 
-  interface Options extends GlobalOptions {
+  export interface Options extends Omit<GlobalOptions, "clean"> {
     listOptions?: ListOptions;
   }
 
@@ -115,8 +119,9 @@ export namespace Truck {
     requests?: RequestOptions;
     output?: string;
     entry?: string;
-    ignoreTypes?: boolean;
   }
+
+  export interface ConfigurationOptions extends Omit<Configuration, "models"> {}
 }
 
 export const configs: Truck.Configuration = {

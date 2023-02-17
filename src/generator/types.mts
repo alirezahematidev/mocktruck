@@ -1,4 +1,5 @@
 import { TypeNotation } from "../constants/notations.enum.mjs";
+import { Truck } from "../interfaces/index.mjs";
 
 export type IPrimitive = string | number | bigint | boolean;
 
@@ -21,6 +22,8 @@ export type IReturnEntries = Record<string, IComplex>;
 export type IMock = IReturnEntries | IReturnEntries[];
 
 export type IType = Record<string, string>;
+
+export type IOptions = Record<string, Truck.Options>;
 
 export type TypedProperty = {
   property: string;
