@@ -11,6 +11,7 @@ import {
 } from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import * as generators from "../externals/pkg/index.js";
+import { ITypeRecord } from "../generator/types.mjs";
 import { Truck } from "../interfaces/index.mjs";
 
 export function awaited<P extends any, R extends any>(fn: (...args: P[]) => R) {
@@ -100,6 +101,60 @@ export function parseDigits(digit: bigint): number {
   return Number.parseInt(digit.toString());
 }
 
+export function dot(...args: string[]) {
+  return args.join(".");
+}
+
+export function modify(filename: string) {
+  const regex = /\W+/g;
+
+  const name = filename.replace(regex, EMPTY);
+
+  return name;
+}
+
+export function tname(options?: Truck.GlobalOptions | Truck.Options) {
+  const basename = dot("data", "type");
+
+  console.log(basename);
+
+  if (!isOptionEnabled(options)) return basename;
+
+  const typename = options.filename;
+
+  if (!typename) return basename;
+
+  if (typeof typename === "string") {
+    return dot(modify(typename), "type") || basename;
+  }
+
+  const d = modify(typename.data) || basename;
+
+  const t = typename.type;
+
+  if (!t) return dot(d, "type");
+
+  return modify(t) || dot(d, "type");
+}
+
+export function dname(options?: Truck.GlobalOptions | Truck.Options) {
+  const basename = "data";
+
+  if (!isOptionEnabled(options)) return basename;
+
+  const filename = options.filename;
+
+  if (!filename) return basename;
+
+  if (typeof filename === "string") {
+    return modify(filename) || basename;
+  }
+
+  const d = modify(filename.data) || basename;
+
+  return d;
+}
+
 export function from<T extends any, R extends Record<keyof T, T>>(
   entries: T[][],
 ): R {
@@ -145,7 +200,11 @@ export function braces(input: string) {
 }
 
 export function sumString(...args: string[]): string {
-  return args.reduce((a, b) => a + " " + b, "");
+  return args.join(" ");
+}
+
+export function stackString(...args: string[]): string {
+  return args.join("");
 }
 
 export function typedDef(name: string, type: string, isArray: boolean) {
@@ -155,6 +214,7 @@ export function typedDef(name: string, type: string, isArray: boolean) {
 }
 
 export function wrapType<S extends Truck.SharedTypeOptions>(
+  property: string,
   notation: TypeNotation,
   options: S,
 ) {
@@ -166,22 +226,71 @@ export function wrapType<S extends Truck.SharedTypeOptions>(
 
   const wrapper = sumString(ONotation, NNotation, END);
 
+  return property + wrapper;
+}
+
+export function wrapStructType(property: string, type: string) {
+  const notation = sumString(property, EQ, type);
+
+  const wrapper = sumString("type", notation, BR);
+
   return wrapper;
 }
 
-export function structType(typing: string, options: Truck.TStruct) {
+export function wrapStructDef<S extends Truck.SharedTypeOptions>(
+  property: string,
+  options: S,
+) {
+  const prop = cap(property);
+
+  const ONotation = options.optional ? "?:" : ":";
+
+  const NNotation = options.nullable ? orWith(prop, TypeNotation.NULL) : prop;
+
+  const wrapper = sumString(property, ONotation, NNotation, END);
+
+  return wrapper;
+}
+
+export function wrapArrayDef<S extends Truck.SharedTypeOptions>(
+  property: string,
+  options: S,
+) {
+  const cprop = cap(property);
+
   const ONotation = options.optional ? "?:" : ":";
 
   const NNotation = options.nullable
-    ? orWith(bricks(typing), TypeNotation.NULL)
-    : bricks(typing);
+    ? orWith(BRACKET, TypeNotation.NULL)
+    : BRACKET;
 
-  const wrapper = sumString(ONotation, NNotation, END);
+  const wrapper = sumString(property, ONotation, cprop, NNotation, END);
 
   return wrapper;
 }
 
-export function listType(typing: string, options: Truck.TArray) {
+export function structType(
+  typing: string,
+  options: Truck.TStruct,
+  distinctTypes?: boolean,
+) {
+  const ONotation = options.optional ? "?:" : ":";
+
+  const NNotation =
+    options.nullable && !distinctTypes
+      ? orWith(bricks(typing), TypeNotation.NULL)
+      : bricks(typing);
+
+  const wrapper = sumString(distinctTypes ? EMPTY : ONotation, NNotation, END);
+
+  return wrapper;
+}
+
+export function listType(
+  typing: string,
+  options: Truck.TArray,
+  distinctTypes?: boolean,
+) {
   const ONotation = options.optional ? "?:" : ":";
 
   const autoGenerateId = options.autoGenerateId;
@@ -204,11 +313,17 @@ export function listType(typing: string, options: Truck.TArray) {
     modifiedTyping = sumString(fieldTyping, modifiedTyping);
   }
 
-  const NNotation = options.nullable
-    ? orWith(bricks(modifiedTyping), TypeNotation.NULL)
-    : bricks(modifiedTyping);
+  const NNotation =
+    options.nullable && !distinctTypes
+      ? orWith(bricks(modifiedTyping), TypeNotation.NULL)
+      : bricks(modifiedTyping);
 
-  const wrapper = sumString(ONotation, NNotation, BRACKET, END);
+  const wrapper = sumString(
+    distinctTypes ? EMPTY : ONotation,
+    NNotation,
+    distinctTypes ? EMPTY : BRACKET,
+    END,
+  );
 
   return wrapper;
 }
@@ -237,29 +352,56 @@ export function optionsListType(typing: string, options: Truck.ListOptions) {
   return modifiedTyping;
 }
 
-export function typedRaw(name: string, type: string) {
-  const def = sumString("type", name, EQ, bricks(type), END);
-  const exp = sumString(EX, "type", braces(name));
+type MapObject = { key: string; value: string };
 
-  return sumString(def, BR, exp);
+export function mapObject<T extends object>(obj: T): MapObject {
+  return Object.keys(obj).reduce(
+    (_p, q) => ({ key: q, value: obj[q as keyof T] } as MapObject),
+    {} as MapObject,
+  );
+}
+
+export function typedRaw(name: string, type: ITypeRecord) {
+  let refs: string = "";
+
+  let typenames: string[] = [name];
+
+  for (const [key, value] of type.reference.entries()) {
+    refs += sumString("type", cap(key), EQ, value, BR);
+    typenames.push(cap(key));
+  }
+
+  const def = sumString("type", cap(name), EQ, bricks(type.infer), END);
+
+  const capnames = typenames.map((name) => cap(name));
+
+  const exp = sumString(EX, "type", braces(capnames.join(",")));
+
+  return sumString(refs, BR, def, BR, exp);
 }
 
 type MockedRaw = {
   input: string;
   model: string;
-  typeName: string;
   isArray: boolean;
   withTypes?: boolean;
+  typename: string;
 };
 
 export function mockedRaw(m: MockedRaw) {
-  let imp = sumString(IM, braces(m.typeName), "from", `"./type"`, END);
+  let imp = sumString(
+    IM,
+    braces(cap(m.model)),
+    "from",
+    `"./${m.typename}"`,
+    END,
+  );
 
   if (!m.withTypes) {
     imp = EMPTY;
   }
 
-  const typeDef = typedDef(m.model, m.typeName, m.isArray);
+  const typeDef = typedDef(m.model, cap(m.model), m.isArray);
 
   const defExp = m.withTypes ? typeDef : m.model;
 
@@ -278,6 +420,26 @@ export function compareAndFilter(base: string[], target: string[]) {
   return base.filter((b) => target.some((t) => compareString(b, t)));
 }
 
-export function joinString(first: string, second: string) {
-  return sumString(first, "_", second);
+export function joinString(first: string, second: string, connector?: string) {
+  return sumString(first, connector ?? "_", second);
+}
+
+export function getOptions(
+  globalOptions: Truck.GlobalOptions | undefined,
+  options: Truck.Options | undefined,
+) {
+  const isOptionsEnabled = isOptionEnabled(options);
+  const isGlobalOptionsEnabled = isOptionEnabled(globalOptions);
+
+  if (!isGlobalOptionsEnabled && !isOptionsEnabled) return;
+
+  if (options === undefined) {
+    return globalOptions;
+  }
+
+  if (globalOptions === undefined) {
+    return options;
+  }
+
+  return { ...globalOptions, ...options };
 }

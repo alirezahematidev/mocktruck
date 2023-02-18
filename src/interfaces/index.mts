@@ -34,14 +34,18 @@ export namespace Truck {
     autoGenerateId?: AutoGenerateIdOptions;
   };
 
+  export type FileOptions = {
+    data: string;
+    type?: string;
+  };
+
   export interface GlobalOptions {
-    generateEnumsAsType?: boolean;
-    generateSeparateSchemaType?: boolean;
+    enumsAsType?: boolean;
+    distinctTypes?: boolean;
     defaultListCount?: number;
     requiredFields?: boolean;
     nullableFields?: boolean;
-    typesFileName?: string;
-    mockFileName?: string;
+    filename?: string | FileOptions;
     clean?: boolean;
     useTypes?: boolean;
   }
@@ -128,47 +132,6 @@ export const configs: Truck.Configuration = {
   models: [
     {
       name: "users",
-      options: {
-        listOptions: {
-          count: 5,
-          autoGenerateId: {
-            field: "userId",
-            strategy: "autoincrement",
-          },
-        },
-      },
-      schema: {
-        email: {
-          type: "email",
-        },
-        firstname: {
-          type: "firstname",
-        },
-        employees: {
-          type: "array",
-          autoGenerateId: {
-            field: "employeeId",
-            strategy: "autoincrement",
-          },
-          schema: {
-            name: {
-              type: "firstname",
-            },
-          },
-        },
-      },
-    },
-    {
-      name: "posts",
-      options: {
-        listOptions: {
-          count: 5,
-          autoGenerateId: {
-            field: "userId",
-            strategy: "autoincrement",
-          },
-        },
-      },
       schema: {
         email: {
           type: "email",

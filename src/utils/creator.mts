@@ -27,26 +27,6 @@ function getOutput(output?: string) {
   return DEFAULT_OUT;
 }
 
-function getOptions(
-  globalOptions: Truck.GlobalOptions | undefined,
-  options: Truck.Options | undefined,
-) {
-  const isOptionEnabled = misc.isOptionEnabled(options);
-  const isGlobalOptionEnabled = misc.isOptionEnabled(globalOptions);
-
-  if (!isGlobalOptionEnabled && !isOptionEnabled) return;
-
-  if (options === undefined) {
-    return globalOptions;
-  }
-
-  if (globalOptions === undefined) {
-    return options;
-  }
-
-  return { ...globalOptions, ...options };
-}
-
 async function create() {
   try {
     const configure = misc.awaited(Builder.configure);
@@ -95,8 +75,6 @@ async function create() {
     await emptyFolder(root);
 
     data.forEach((model) => {
-      const typeName = misc.cap(model);
-
       const mock = Builder.entries.data[model];
 
       const isArray = Builder.entries.isArray;
@@ -105,38 +83,28 @@ async function create() {
 
       const input = serialize(mock, { isJSON: false });
 
-      const typedRaw = misc.typedRaw(typeName, Builder.types(model));
+      const options = misc.getOptions(globalOptions, modelOptions) ?? {};
 
-      const options = getOptions(globalOptions, modelOptions) ?? {};
+      const typedRaw = misc.typedRaw(model, Builder.types(model));
 
       let withTypes = true;
 
-      let mockFileName = "data";
-
-      let typeFileName = "type";
-
       if (misc.isOptionEnabled(options)) {
-        const filename = options.mockFileName;
-        const typename = options.typesFileName;
         const useTypes = options.useTypes;
 
         withTypes = misc.valuable(useTypes) ? useTypes : true;
-
-        if (filename) {
-          mockFileName = filename;
-        }
-
-        if (typename) {
-          typeFileName = typename;
-        }
       }
+
+      const typename = misc.tname(options);
+
+      const mockname = misc.dname(options);
 
       const mockedRaw = misc.mockedRaw({
         model,
         input,
-        typeName,
         isArray,
         withTypes,
+        typename,
       });
 
       prettier.resolveConfig(root).then(async (options) => {
@@ -157,8 +125,8 @@ async function create() {
 
         await Promise.allSettled([
           fs.mkdir(target, { recursive: true }),
-          writer.writeMock(mockFileName, fMock, withTypes),
-          writer.writeType(typeFileName, fType, withTypes),
+          writer.writeMock(mockname, fMock, withTypes),
+          writer.writeType(typename, fType, withTypes),
         ]);
       });
     });

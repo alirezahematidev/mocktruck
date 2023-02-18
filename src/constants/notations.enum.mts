@@ -8,6 +8,7 @@ enum TypeNotation {
   ARRAY = "array",
   NULL = "null",
   UNDEFINED = "undefined",
+  GENERIC = "S",
 }
 
 export { TypeNotation };

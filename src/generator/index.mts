@@ -1,35 +1,32 @@
 import { Truck } from "../interfaces/index.mjs";
 import * as misc from "../misc/index.mjs";
-import * as g from "../externals/pkg/index.js";
-import * as c from "../constants/index.mjs";
-import * as T from "./types.mjs";
+import * as gen from "../externals/pkg/index.js";
+import * as cons from "../constants/index.mjs";
+import * as types from "./types.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
-import { TypeMaker } from "./utilities.class.mjs";
 import isEqual from "lodash/isEqual.js";
 import { Logger } from "../log/index.mjs";
+import { Typing, Generator } from "./helpers/index.mjs";
+import { AutoGenerateId } from "./helpers/autoGenerateId.mjs";
 
-/** @todo Implemented specific types for struct properties */
-/** @todo Implemented specific types for list properties */
-/** @todo Clean code mocked logic functionalities */
-
-class Builder {
+class Builder extends AutoGenerateId {
   private static logger = new Logger();
-  private static map = new Map<string, T.IMock>();
-  private static type: T.IType = {};
-  private static options: T.IOptions = {};
-  private static count: number = c.ZERO;
+  private static map = new Map<string, types.IMock>();
+  private static type = new Map<string, types.ITypeRecord>();
+  private static options: types.IOptions = {};
   private static isArray: boolean = false;
 
   public static get entries() {
     const data = misc.fromMap(Builder.map.entries());
-
     const isArray = Builder.isArray;
 
     return Object.freeze({ data, isArray });
   }
 
   public static types(model: string) {
-    return (Builder.type[model] || c.EMPTY).trim();
+    const types = misc.fromMap(Builder.type.entries());
+
+    return types[model];
   }
 
   public static modelOptions(model: string): Truck.Options | undefined {
@@ -44,170 +41,68 @@ class Builder {
     return Builder.logger;
   }
 
-  private static build(schema: Truck.Schema): T.IReturnEntries {
+  static build(schema: Truck.Schema): types.IReturnEntries {
     try {
+      const generator = new Generator(schema);
+
       const properties = misc.getKeys(schema);
+
       const entries = properties.map((property) => {
         const type = schema[property].type;
 
         switch (type) {
           case "array":
-            const arraySchema = schema[property] as Truck.TArray;
-
-            const arrayLength = arraySchema.count ?? c.LENGTH;
-
-            const autoGenerateId = arraySchema.autoGenerateId;
-
-            const list = misc.list(arrayLength, () =>
-              Builder.build(arraySchema.schema),
-            );
-
-            if (!misc.isOptionEnabled(autoGenerateId)) {
-              return [property, list] as T.IReturnArray;
-            }
-
-            const mappedList = Builder.autoGenerateIdMapper(
-              list,
-              autoGenerateId,
-              Builder.counter(),
-            );
-
-            return [property, mappedList || list] as T.IReturnArray;
+            return generator.array(property, Builder);
 
           case "object":
-            const objectSchema = schema[property] as Truck.TStruct;
-
-            return [
-              property,
-              Builder.build(objectSchema.schema),
-            ] as T.IReturnObject;
+            return generator.object(property, Builder);
 
           case "firstname":
-            const fcharSchema = schema[property] as Truck.TChar;
-
-            const firstname = g.generate_firstname();
-
-            const casedFirstname = misc.cased(firstname, fcharSchema.case);
-
-            return [property, casedFirstname] as T.IReturnPrimitive;
+            return generator.char(property, gen.generate_firstname);
 
           case "lastname":
-            const lcharSchema = schema[property] as Truck.TChar;
-
-            const lastname = g.generate_lastname();
-
-            const casedLastname = misc.cased(lastname, lcharSchema.case);
-
-            return [property, casedLastname] as T.IReturnPrimitive;
+            return generator.char(property, gen.generate_lastname);
 
           case "fullname":
-            const ffcharSchema = schema[property] as Truck.TChar;
-
-            const fullname = g.generate_fullname();
-
-            const casedFullname = misc.cased(fullname, ffcharSchema.case);
-
-            return [property, casedFullname] as T.IReturnPrimitive;
-
-          case "digits":
-            const numberSchema = schema[property] as Truck.TDigit;
-
-            const digitLength = numberSchema.length ?? c.DIGIT;
-
-            const digit = g.generate_number(digitLength);
-
-            return [property, misc.parseDigits(digit)] as T.IReturnPrimitive;
-
-          case "bigint":
-            const bigintSchema = schema[property] as Truck.TDigit;
-
-            const bigintLength = bigintSchema.length ?? c.DIGIT;
-
-            const bigint = g.generate_number(bigintLength);
-
-            return [property, bigint] as T.IReturnPrimitive;
-
-          case "date":
-            const dateSchema = schema[property] as Truck.TDate;
-
-            const format = dateSchema.format;
-
-            let randomDate = "";
-
-            if (format === "UTC") {
-              randomDate = g.generate_utc_date();
-            } else {
-              randomDate = g.generate_iso_date();
-            }
-
-            return [property, randomDate] as T.IReturnPrimitive;
-
-          case "domain":
-            const domain = g.generate_domain();
-
-            return [property, domain] as T.IReturnPrimitive;
-
-          case "email":
-            const email = g.generate_email();
-
-            return [property, email] as T.IReturnPrimitive;
+            return generator.char(property, gen.generate_fullname);
 
           case "paragraph":
-            const pcharSchema = schema[property] as Truck.TChar;
-
-            const paragraph = g.generate_paragraph();
-
-            const casedParagraph = misc.cased(paragraph, pcharSchema.case);
-
-            return [property, casedParagraph] as T.IReturnPrimitive;
+            return generator.char(property, gen.generate_paragraph);
 
           case "paragraphs":
-            const ppcharSchema = schema[property] as Truck.TChar;
-
-            const paragraphs = g.generate_paragraphs();
-
-            const casedParagraphs = misc.cased(paragraphs, ppcharSchema.case);
-
-            return [property, casedParagraphs] as T.IReturnPrimitive;
+            return generator.char(property, gen.generate_paragraphs);
 
           case "sentence":
-            const scharSchema = schema[property] as Truck.TChar;
-
-            const sentence = g.generate_sentence();
-
-            const casedSentence = misc.cased(sentence, scharSchema.case);
-
-            return [property, casedSentence] as T.IReturnPrimitive;
+            return generator.char(property, gen.generate_sentence);
 
           case "word":
-            const wcharSchema = schema[property] as Truck.TChar;
+            return generator.char(property, gen.generate_word);
 
-            const word = g.generate_word();
+          case "digits":
+            return generator.digit(property);
 
-            const casedWord = misc.cased(word, wcharSchema.case);
+          case "bigint":
+            return generator.bigint(property);
 
-            return [property, casedWord] as T.IReturnPrimitive;
+          case "date":
+            return generator.date(property);
+
+          case "domain":
+            return generator.domain(property);
+
+          case "email":
+            return generator.email(property);
 
           case "uuid":
-            const uuid = g.generate_uuid();
-
-            return [property, uuid] as T.IReturnPrimitive;
+            return generator.uuid(property);
 
           case "boolean":
-            const boolSchema = schema[property] as Truck.TBool;
-
-            const f = boolSchema.frequency;
-
-            const freq = misc.valuable(f) ? f : c.FREQ;
-
-            const bool = g.generate_bool(freq);
-
-            return [property, bool] as T.IReturnPrimitive;
+            return generator.bool(property);
 
           default:
-            return [property, c.UNKNOWN] as T.IReturnPrimitive;
+            return generator.default(property);
         }
-      }) as T.IMapping[];
+      }) as types.IMapping[];
 
       return misc.from(entries);
     } catch (error) {
@@ -215,38 +110,38 @@ class Builder {
     }
   }
 
-  static typing(schema: Truck.Schema) {
+  static typing(schema: Truck.Schema, name: string, distinctTypes?: boolean) {
     try {
-      const typeMaker = new TypeMaker(schema);
+      const typeDef = new Typing(schema, name, distinctTypes);
 
       const typed = Builder.typedProperties(schema);
 
       const notations: string[] = typed.map(({ property, notation }) => {
         switch (notation) {
           case TypeNotation.STRING:
-            return typeMaker.make(property).satisfy(notation);
+            return typeDef.make(property).satisfy(notation);
 
           case TypeNotation.NUMBER:
-            return typeMaker.make(property).satisfy(notation);
+            return typeDef.make(property).satisfy(notation);
 
           case TypeNotation.BIGINT:
-            return typeMaker.make(property).satisfy(notation);
+            return typeDef.make(property).satisfy(notation);
 
           case TypeNotation.BOOL:
-            return typeMaker.make(property).satisfy(notation);
+            return typeDef.make(property).satisfy(notation);
 
           case TypeNotation.OBJECT:
-            return typeMaker
+            return typeDef
               .make(property)
               .struct(Builder, schema[property] as Truck.TStruct);
 
           case TypeNotation.ARRAY:
-            return typeMaker
+            return typeDef
               .make(property)
               .list(Builder, schema[property] as Truck.TArray);
 
           default:
-            return typeMaker.make(property).satisfy(TypeNotation.UNKNOWN);
+            return typeDef.make(property).satisfy(TypeNotation.UNKNOWN);
         }
       });
 
@@ -256,7 +151,10 @@ class Builder {
     }
   }
 
-  static iterate(models: Truck.ConfigModel[]) {
+  static iterate(
+    models: Truck.ConfigModel[],
+    globalOptions?: Truck.GlobalOptions,
+  ) {
     try {
       Builder.isArray = false;
 
@@ -271,25 +169,29 @@ class Builder {
 
         Builder.declareOptions(name, options);
 
+        const mergedOptions = misc.getOptions(globalOptions, options) ?? {};
+
         if (misc.isOptionEnabled(listOptions)) {
           Builder.isArray = true;
 
-          const length = listOptions.count ?? c.LENGTH;
+          const length = listOptions.count ?? cons.LENGTH;
 
           const autoGenerateId = listOptions.autoGenerateId;
 
           const list = misc.list(length, () => Builder.build(schema));
 
           if (!misc.isOptionEnabled(autoGenerateId)) {
-            Builder.extendType(name, Builder.typing(schema));
+            Builder.extendType(
+              name,
+              Builder.typing(schema, name, mergedOptions.distinctTypes),
+            );
 
             return Builder.update(name, list);
           }
-
-          const mappedList = Builder.autoGenerateIdMapper(list, autoGenerateId);
+          const mappedList = this.generate(list, autoGenerateId);
 
           const modifiedTyping = misc.optionsListType(
-            Builder.typing(schema),
+            Builder.typing(schema, name, mergedOptions.distinctTypes),
             listOptions,
           );
 
@@ -298,7 +200,10 @@ class Builder {
           return Builder.update(name, mappedList || list);
         }
 
-        Builder.extendType(name, Builder.typing(schema));
+        Builder.extendType(
+          name,
+          Builder.typing(schema, name, mergedOptions.distinctTypes),
+        );
 
         Builder.update(name, Builder.build(schema));
       });
@@ -311,7 +216,9 @@ class Builder {
     try {
       const models = configs.models;
 
-      Builder.iterate(misc.parseIterable(models));
+      const globalOptions = configs.globalOptions;
+
+      Builder.iterate(misc.parseIterable(models), globalOptions);
 
       return configs;
     } catch (error) {
@@ -319,19 +226,47 @@ class Builder {
     }
   }
 
-  private static extendType(model: string, type: string) {
-    if (typeof Builder.type[model] === "undefined") {
-      Builder.type[model] = c.EMPTY;
+  public static refTyping(model: string, ref: types.TypeReference) {
+    if (!Builder.type.has(model)) {
+      Builder.type.set(model, {
+        infer: cons.EMPTY,
+        reference: new Map<string, string>(),
+      });
     }
 
-    Builder.type[model] += type;
+    const record = Builder.type.get(model);
+
+    if (!record) return;
+
+    const { key, value } = misc.mapObject(ref);
+
+    record.reference.set(key, value);
+  }
+
+  private static extendType(model: string, type: string) {
+    if (!Builder.type.has(model)) {
+      Builder.type.set(model, {
+        infer: cons.EMPTY,
+        reference: new Map<string, string>(),
+      });
+    }
+
+    const record = Builder.type.get(model);
+
+    if (!record) return;
+
+    if (record.infer === undefined) {
+      record.infer = cons.EMPTY;
+    }
+
+    record.infer += type;
   }
 
   private static declareOptions(name: string, options: Truck.Options) {
     Builder.options[name] = options;
   }
 
-  private static update(name: string, entries: T.IMock) {
+  private static update(name: string, entries: types.IMock) {
     const prevEnteries = Builder.map.get(name);
 
     const equal = isEqual(prevEnteries, entries);
@@ -341,30 +276,7 @@ class Builder {
     Builder.map.set(name, entries);
   }
 
-  private static autoGenerateIdMapper(
-    list: T.IReturnEntries[],
-    autoGenerateId: Truck.AutoGenerateIdOptions,
-    increment?: () => number,
-  ) {
-    const field = autoGenerateId.field ?? c.FIELD;
-
-    const strategy = autoGenerateId.strategy ?? c.STRATEGY;
-
-    const isFieldDuplicated = misc.isDuplicatedField(list, field);
-
-    if (!isFieldDuplicated) {
-      const mappedList = list.map((obj, index) => {
-        return {
-          [field]: misc.generateId(strategy, index, increment),
-          ...obj,
-        };
-      }) as T.IReturnEntries[];
-
-      return mappedList;
-    }
-  }
-
-  private static typedProperties(schema: Truck.Schema): T.TypedProperty[] {
+  private static typedProperties(schema: Truck.Schema): types.TypedProperty[] {
     const properties = misc.getKeys(schema);
 
     return properties.map((property) => {
@@ -403,14 +315,6 @@ class Builder {
           return { property, notation: TypeNotation.UNKNOWN };
       }
     });
-  }
-
-  private static counter() {
-    return function increment() {
-      Builder.count++;
-
-      return Builder.count;
-    };
   }
 }
 

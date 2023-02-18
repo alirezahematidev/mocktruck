@@ -21,7 +21,16 @@ export type IReturnEntries = Record<string, IComplex>;
 
 export type IMock = IReturnEntries | IReturnEntries[];
 
-export type IType = Record<string, string>;
+export type TypeReference = {
+  [ref: string]: string;
+};
+
+export type ITypeRecord = {
+  infer: string;
+  reference: Map<string, string>;
+};
+
+export type IType = Record<string, ITypeRecord>;
 
 export type IOptions = Record<string, Truck.Options>;
 
