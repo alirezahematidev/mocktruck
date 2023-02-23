@@ -1,4 +1,4 @@
-export namespace Truck {
+export declare namespace Truck {
   type NameTypeOptions = "firstname" | "lastname" | "fullname";
 
   type DateTypeOptions = "date";
@@ -45,7 +45,6 @@ export namespace Truck {
     defaultListCount?: number;
     requiredFields?: boolean;
     nullableFields?: boolean;
-    filename?: string | FileOptions;
     clean?: boolean;
     useTypes?: boolean;
   }
@@ -127,19 +126,3 @@ export namespace Truck {
 
   export interface ConfigurationOptions extends Omit<Configuration, "models"> {}
 }
-
-export const configs: Truck.Configuration = {
-  models: [
-    {
-      name: "users",
-      schema: {
-        email: {
-          type: "email",
-        },
-        firstname: {
-          type: "firstname",
-        },
-      },
-    },
-  ],
-};

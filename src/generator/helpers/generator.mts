@@ -121,7 +121,7 @@ export class Generator extends AutoGenerateId {
 
     const fr = boolSchema.frequency;
 
-    const freq = misc.valuable(fr) ? fr : cons.FREQ;
+    const freq = misc.valuable(fr) ? fr : cons.FREQUENCY;
 
     const bool = gen.generate_bool(freq);
 

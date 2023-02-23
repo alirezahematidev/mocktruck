@@ -1,10 +1,25 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import prettier from "prettier";
-import { Truck, configs } from "../interfaces/index.mjs";
 import { Builder } from "../generator/index.mjs";
 import * as misc from "../misc/index.mjs";
 import serialize from "serialize-javascript";
+import { DATA_WORD, TYPE_WORD } from "../constants/index.mjs";
+import { Writer } from "./helpers/writer.mjs";
+import glob from "glob";
+import { Truck } from "../interfaces/index.mjs";
+
+type ImportedConfig = Record<string, Truck.Configuration>;
+
+const globOptions: glob.IOptions = {
+  absolute: true,
+  cwd: process.cwd(),
+  mark: true,
+  stat: true,
+  cache: {
+    [process.cwd()]: "DIR",
+  },
+};
 
 function getEntry(entry?: string) {
   const current = process.cwd();
@@ -27,7 +42,7 @@ function getOutput(output?: string) {
   return DEFAULT_OUT;
 }
 
-async function create() {
+async function create(configs: Truck.Configuration) {
   try {
     const configure = misc.awaited(Builder.configure);
 
@@ -39,13 +54,7 @@ async function create() {
 
     const globalOptions = configOptions.globalOptions;
 
-    let clean = true;
-
-    if (misc.isOptionEnabled(globalOptions)) {
-      const c = globalOptions.clean;
-
-      clean = misc.valuable(c) ? c : true;
-    }
+    const clean = misc.cleaner(globalOptions);
 
     try {
       await fs.access(output, fs.constants.R_OK);
@@ -87,24 +96,13 @@ async function create() {
 
       const typedRaw = misc.typedRaw(model, Builder.types(model));
 
-      let withTypes = true;
-
-      if (misc.isOptionEnabled(options)) {
-        const useTypes = options.useTypes;
-
-        withTypes = misc.valuable(useTypes) ? useTypes : true;
-      }
-
-      const typename = misc.tname(options);
-
-      const mockname = misc.dname(options);
+      const withTypes = misc.canUseTypes(options);
 
       const mockedRaw = misc.mockedRaw({
         model,
         input,
         isArray,
         withTypes,
-        typename,
       });
 
       prettier.resolveConfig(root).then(async (options) => {
@@ -125,8 +123,8 @@ async function create() {
 
         await Promise.allSettled([
           fs.mkdir(target, { recursive: true }),
-          writer.writeMock(mockname, fMock, withTypes),
-          writer.writeType(typename, fType, withTypes),
+          writer.writeMock(DATA_WORD, fMock, withTypes),
+          writer.writeType(TYPE_WORD, fType, withTypes),
         ]);
       });
     });
@@ -135,36 +133,81 @@ async function create() {
   }
 }
 
-class Writer {
-  private target: string = process.cwd();
+glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
+  if (err) throw err;
 
-  constructor(target: string) {
-    this.target = target;
+  let __immediate: NodeJS.Immediate;
+
+  if (!matches || !matches.length) {
+    console.log("no configuration file found");
+    process.exit(1);
   }
 
-  public async writeType(name: string, data: string, types?: boolean) {
-    if (!types) return;
-
-    const extension = ".ts";
-
-    const file = name + extension;
-
-    const tpath = path.resolve(this.target, file);
-
-    await fs.writeFile(tpath, data);
+  if (matches.length > 1) {
+    console.log("multiple configuration files found. please provide one");
+    process.exit(1);
   }
+  __immediate = setImmediate(async () => {
+    try {
+      const match = matches[0];
 
-  public async writeMock(name: string, data: string, types?: boolean) {
-    const extension = types ? ".ts" : ".js";
+      const importedConfig: ImportedConfig = await import("file://" + match);
 
-    const file = name + extension;
+      const proxyHandler = {
+        get(target: ImportedConfig, prop: string) {
+          if (["default", "configs"].includes(prop)) {
+            if (isValidConfiguration(target[prop])) {
+              return target[prop];
+            }
+            return null;
+          }
+          return null;
+        },
+      };
 
-    const tpath = path.resolve(this.target, file);
+      const configProxy = new Proxy(importedConfig, proxyHandler);
 
-    await fs.writeFile(tpath, data);
-  }
+      const configs = configProxy.default || configProxy.configs;
+
+      if (configs) {
+        return await createConfigs(configs);
+      }
+
+      console.log(
+        "The configuration must be export default or export name by `configs`",
+      );
+
+      process.exit(1);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      clearImmediate(__immediate);
+    }
+  });
+});
+
+function isValidConfiguration(configs: Truck.Configuration) {
+  return !!(configs && configs.models);
 }
 
-create()
-  .catch((error) => Builder.loggerInstance.failed("AN ERROR OCCURED:" + error))
-  .finally(Builder.loggerInstance.save);
+async function createConfigs(configs: Truck.Configuration) {
+  function isValidModel(model: Truck.ConfigModel) {
+    return Boolean(model.name) && misc.isOptionEnabled(model.schema);
+  }
+
+  try {
+    const models = misc.parseIterable(configs.models);
+
+    if (models.every(isValidModel)) {
+      return await create(configs);
+    }
+
+    throw new Error(
+      "models must have name and schema. beware to defined them in each model",
+    );
+  } catch (error) {
+    console.log("An error occured: " + error);
+  } finally {
+    await Builder.loggerInstance.save();
+  }
+}

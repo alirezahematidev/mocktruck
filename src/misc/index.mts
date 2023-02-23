@@ -1,18 +1,9 @@
-import {
-  FIELD,
-  STRATEGY,
-  BR,
-  BRACKET,
-  END,
-  EQ,
-  EX,
-  IM,
-  EMPTY,
-} from "../constants/index.mjs";
+import * as cons from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import * as generators from "../externals/pkg/index.js";
 import { ITypeRecord } from "../generator/types.mjs";
 import { Truck } from "../interfaces/index.mjs";
+import path from "node:path";
 
 export function awaited<P extends any, R extends any>(fn: (...args: P[]) => R) {
   return async (...args: P[]) => {
@@ -39,6 +30,14 @@ export function list<R extends any>(
   const array = Array.from({ length }, (_noop, i) => fn(i));
 
   return array;
+}
+
+export function mts(input: string) {
+  return input + `.mts`;
+}
+
+export function meta(_path: string) {
+  return "file:\\" + _path;
 }
 
 export function isDuplicatedField<A extends Array<object>>(
@@ -108,51 +107,9 @@ export function dot(...args: string[]) {
 export function modify(filename: string) {
   const regex = /\W+/g;
 
-  const name = filename.replace(regex, EMPTY);
+  const name = filename.replace(regex, cons.EMPTY);
 
   return name;
-}
-
-export function tname(options?: Truck.GlobalOptions | Truck.Options) {
-  const basename = dot("data", "type");
-
-  console.log(basename);
-
-  if (!isOptionEnabled(options)) return basename;
-
-  const typename = options.filename;
-
-  if (!typename) return basename;
-
-  if (typeof typename === "string") {
-    return dot(modify(typename), "type") || basename;
-  }
-
-  const d = modify(typename.data) || basename;
-
-  const t = typename.type;
-
-  if (!t) return dot(d, "type");
-
-  return modify(t) || dot(d, "type");
-}
-
-export function dname(options?: Truck.GlobalOptions | Truck.Options) {
-  const basename = "data";
-
-  if (!isOptionEnabled(options)) return basename;
-
-  const filename = options.filename;
-
-  if (!filename) return basename;
-
-  if (typeof filename === "string") {
-    return modify(filename) || basename;
-  }
-
-  const d = modify(filename.data) || basename;
-
-  return d;
 }
 
 export function from<T extends any, R extends Record<keyof T, T>>(
@@ -208,9 +165,13 @@ export function stackString(...args: string[]): string {
 }
 
 export function typedDef(name: string, type: string, isArray: boolean) {
-  const modifiedType = isArray ? type + BRACKET : type;
+  const modifiedType = isArray ? type + cons.BRACKET : type;
 
   return sumString(name, ":", modifiedType);
+}
+
+export function quotes(text: string) {
+  return `"${text}"`;
 }
 
 export function wrapType<S extends Truck.SharedTypeOptions>(
@@ -224,15 +185,15 @@ export function wrapType<S extends Truck.SharedTypeOptions>(
     ? orWith(notation, TypeNotation.NULL)
     : notation;
 
-  const wrapper = sumString(ONotation, NNotation, END);
+  const wrapper = sumString(ONotation, NNotation, cons.END);
 
   return property + wrapper;
 }
 
 export function wrapStructType(property: string, type: string) {
-  const notation = sumString(property, EQ, type);
+  const notation = sumString(property, cons.EQUALS, type);
 
-  const wrapper = sumString("type", notation, BR);
+  const wrapper = sumString(cons.TYPE_WORD, notation, cons.BREAK);
 
   return wrapper;
 }
@@ -247,7 +208,7 @@ export function wrapStructDef<S extends Truck.SharedTypeOptions>(
 
   const NNotation = options.nullable ? orWith(prop, TypeNotation.NULL) : prop;
 
-  const wrapper = sumString(property, ONotation, NNotation, END);
+  const wrapper = sumString(property, ONotation, NNotation, cons.END);
 
   return wrapper;
 }
@@ -261,10 +222,10 @@ export function wrapArrayDef<S extends Truck.SharedTypeOptions>(
   const ONotation = options.optional ? "?:" : ":";
 
   const NNotation = options.nullable
-    ? orWith(BRACKET, TypeNotation.NULL)
-    : BRACKET;
+    ? orWith(cons.BRACKET, TypeNotation.NULL)
+    : cons.BRACKET;
 
-  const wrapper = sumString(property, ONotation, cprop, NNotation, END);
+  const wrapper = sumString(property, ONotation, cprop, NNotation, cons.END);
 
   return wrapper;
 }
@@ -281,7 +242,11 @@ export function structType(
       ? orWith(bricks(typing), TypeNotation.NULL)
       : bricks(typing);
 
-  const wrapper = sumString(distinctTypes ? EMPTY : ONotation, NNotation, END);
+  const wrapper = sumString(
+    distinctTypes ? cons.EMPTY : ONotation,
+    NNotation,
+    cons.END,
+  );
 
   return wrapper;
 }
@@ -298,9 +263,9 @@ export function listType(
   let modifiedTyping = typing;
 
   if (isOptionEnabled(autoGenerateId)) {
-    const field = autoGenerateId.field ?? FIELD;
+    const field = autoGenerateId.field ?? cons.FIELD;
 
-    const strategy = autoGenerateId.strategy ?? STRATEGY;
+    const strategy = autoGenerateId.strategy ?? cons.STRATEGY;
 
     let notation = TypeNotation.STRING;
 
@@ -308,7 +273,7 @@ export function listType(
       notation = TypeNotation.NUMBER;
     }
 
-    const fieldTyping = sumString(field, ":", notation, END);
+    const fieldTyping = sumString(field, ":", notation, cons.END);
 
     modifiedTyping = sumString(fieldTyping, modifiedTyping);
   }
@@ -319,10 +284,10 @@ export function listType(
       : bricks(modifiedTyping);
 
   const wrapper = sumString(
-    distinctTypes ? EMPTY : ONotation,
+    distinctTypes ? cons.EMPTY : ONotation,
     NNotation,
-    distinctTypes ? EMPTY : BRACKET,
-    END,
+    distinctTypes ? cons.EMPTY : cons.BRACKET,
+    cons.END,
   );
 
   return wrapper;
@@ -334,9 +299,9 @@ export function optionsListType(typing: string, options: Truck.ListOptions) {
   let modifiedTyping = typing;
 
   if (isOptionEnabled(autoGenerateId)) {
-    const field = autoGenerateId.field ?? FIELD;
+    const field = autoGenerateId.field ?? cons.FIELD;
 
-    const strategy = autoGenerateId.strategy ?? STRATEGY;
+    const strategy = autoGenerateId.strategy ?? cons.STRATEGY;
 
     let notation = TypeNotation.STRING;
 
@@ -344,7 +309,7 @@ export function optionsListType(typing: string, options: Truck.ListOptions) {
       notation = TypeNotation.NUMBER;
     }
 
-    const fieldTyping = sumString(field, ":", notation, END);
+    const fieldTyping = sumString(field, ":", notation, cons.END);
 
     modifiedTyping = sumString(fieldTyping, modifiedTyping);
   }
@@ -367,17 +332,27 @@ export function typedRaw(name: string, type: ITypeRecord) {
   let typenames: string[] = [name];
 
   for (const [key, value] of type.reference.entries()) {
-    refs += sumString("type", cap(key), EQ, value, BR);
+    refs += sumString(cons.TYPE_WORD, cap(key), cons.EQUALS, value, cons.BREAK);
     typenames.push(cap(key));
   }
 
-  const def = sumString("type", cap(name), EQ, bricks(type.infer), END);
+  const def = sumString(
+    cons.TYPE_WORD,
+    cap(name),
+    cons.EQUALS,
+    bricks(type.infer),
+    cons.END,
+  );
 
   const capnames = typenames.map((name) => cap(name));
 
-  const exp = sumString(EX, "type", braces(capnames.join(",")));
+  const exp = sumString(
+    cons.EXPORT,
+    cons.TYPE_WORD,
+    braces(capnames.join(",")),
+  );
 
-  return sumString(refs, BR, def, BR, exp);
+  return sumString(refs, cons.BREAK, def, cons.BREAK, exp);
 }
 
 type MockedRaw = {
@@ -385,31 +360,36 @@ type MockedRaw = {
   model: string;
   isArray: boolean;
   withTypes?: boolean;
-  typename: string;
 };
 
 export function mockedRaw(m: MockedRaw) {
   let imp = sumString(
-    IM,
+    cons.IMPORT,
     braces(cap(m.model)),
-    "from",
-    `"./${m.typename}"`,
-    END,
+    cons.FROM_WORD,
+    quotes("./" + cons.TYPE_WORD),
+    cons.END,
   );
 
   if (!m.withTypes) {
-    imp = EMPTY;
+    imp = cons.EMPTY;
   }
 
   const typeDef = typedDef(m.model, cap(m.model), m.isArray);
 
   const defExp = m.withTypes ? typeDef : m.model;
 
-  const def = sumString("const", defExp, EQ, m.input, END);
+  const def = sumString(
+    cons.CONST_WORD,
+    defExp,
+    cons.EQUALS,
+    m.input,
+    cons.END,
+  );
 
-  const exp = sumString(EX, braces(m.model));
+  const exp = sumString(cons.EXPORT, braces(m.model));
 
-  return sumString(imp, BR, def, BR, exp);
+  return sumString(imp, cons.BREAK, def, cons.BREAK, exp);
 }
 
 export function compareString(base: string, target: string) {
@@ -442,4 +422,45 @@ export function getOptions(
   }
 
   return { ...globalOptions, ...options };
+}
+
+export function cleaner(globalOptions?: Truck.GlobalOptions) {
+  let clean = true;
+
+  if (isOptionEnabled(globalOptions)) {
+    const c = globalOptions.clean;
+
+    clean = valuable(c) ? c : true;
+  }
+
+  return clean;
+}
+
+export function canUseTypes(options: Truck.GlobalOptions | Truck.Options) {
+  let wt = true;
+
+  if (isOptionEnabled(options)) {
+    const useTypes = options.useTypes;
+
+    wt = valuable(useTypes) ? useTypes : true;
+  }
+
+  return wt;
+}
+
+export function configId(length: number) {
+  let result = "";
+
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$_";
+
+  const charactersLength = characters.length;
+
+  let counter = 0;
+
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+
+  return result;
 }

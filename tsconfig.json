@@ -2,7 +2,7 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "moduleResolution": "Node",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "ESNext"],
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -14,15 +14,13 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "module": "ESNext",
-    "target": "esnext",
+    "target": "ESNext",
     "allowJs": true,
-    "typeRoots": ["node_modules/@types", "jest"],
-    "types": ["node"]
+    "typeRoots": ["node_modules/@types", "jest"]
   },
   "ts-node": {
-    "esm": true,
-    "require": ["tsconfig-paths/register"]
+    "esm": true
   },
   "include": ["src", "src/typings.d.ts", "*.mts"],
-  "exclude": ["node_modules", "lib", "bin"]
+  "exclude": ["node_modules", "lib", "bin", "out"]
 }

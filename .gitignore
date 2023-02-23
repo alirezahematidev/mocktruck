@@ -6,3 +6,4 @@ dist
 src/externals/target
 Cargo.lock
 out
+BUILD_ID

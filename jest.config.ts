@@ -1,7 +1,5 @@
 import { defaults } from "jest-config";
 import type { Config } from "jest";
-import { pathsToModuleNameMapper } from "ts-jest";
-import { compilerOptions } from "./tsconfig.json";
 
 const config: Config = {
   silent: false,
@@ -25,10 +23,6 @@ const config: Config = {
   rootDir: "src",
   testMatch: ["**/__tests__/**/*.mts", "**/__tests__/**/*.mjs"],
   resolver: "<rootDir>/resolvers/mjs-resolver.cjs",
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
-    prefix: "<rootDir>",
-    useESM: true,
-  }),
 };
 
 export default config;
