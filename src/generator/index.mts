@@ -1,4 +1,4 @@
-import { Truck } from "../interfaces/index.mjs";
+import { Truck } from "../typings/index.mjs";
 import * as misc from "../misc/index.mjs";
 import * as gen from "../externals/pkg/index.js";
 import * as cons from "../constants/index.mjs";

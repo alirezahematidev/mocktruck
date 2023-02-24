@@ -1,10 +1,5 @@
-import { Truck } from "../../interfaces/index.mjs";
-import {
-  IReturnArray,
-  IReturnEntries,
-  IReturnObject,
-  IReturnPrimitive,
-} from "../types.mjs";
+import { Truck } from "../../typings/index.mjs";
+import { IReturnArray, IReturnObject, IReturnPrimitive } from "../types.mjs";
 import * as misc from "../../misc/index.mjs";
 import * as cons from "../../constants/index.mjs";
 import * as gen from "../../externals/pkg/index.js";

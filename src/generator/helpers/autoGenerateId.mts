@@ -1,5 +1,5 @@
 import * as cons from "../../constants/index.mjs";
-import { Truck } from "../../interfaces/index.mjs";
+import { Truck } from "../../typings/index.mjs";
 import { IReturnEntries } from "../types.mjs";
 import * as misc from "../../misc/index.mjs";
 import * as types from "../types.mjs";

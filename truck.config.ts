@@ -24,6 +24,17 @@ export const configs: any = {
         },
       },
     },
+    {
+      name: "employees",
+      schema: {
+        firstname: {
+          type: "firstname",
+        },
+        age: {
+          type: "digits",
+        },
+      },
+    },
   ],
 };
 

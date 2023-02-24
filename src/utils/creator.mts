@@ -7,7 +7,8 @@ import serialize from "serialize-javascript";
 import { DATA_WORD, TYPE_WORD } from "../constants/index.mjs";
 import { Writer } from "./helpers/writer.mjs";
 import glob from "glob";
-import { Truck } from "../interfaces/index.mjs";
+import { Truck } from "../typings/index.mjs";
+import { Request } from "./helpers/request.mjs";
 
 type ImportedConfig = Record<string, Truck.Configuration>;
 
@@ -83,7 +84,11 @@ async function create(configs: Truck.Configuration) {
 
     await emptyFolder(root);
 
-    data.forEach((model) => {
+    const request = new Request();
+
+    await request.regenerateConfigs();
+
+    const writeDataList = data.map(async (model) => {
       const mock = Builder.entries.data[model];
 
       const isArray = Builder.entries.isArray;
@@ -105,29 +110,38 @@ async function create(configs: Truck.Configuration) {
         withTypes,
       });
 
-      prettier.resolveConfig(root).then(async (options) => {
-        const fMock = prettier.format(mockedRaw, {
-          ...options,
-          parser: "babel-ts",
-          endOfLine: "lf",
-        });
-        const fType = prettier.format(typedRaw, {
-          ...options,
-          parser: "babel-ts",
-          endOfLine: "lf",
-        });
+      const key = misc.randomKey(8);
 
-        const target = path.resolve(root, model);
+      await request.createRouteConfig(model, input, key);
 
-        const writer = new Writer(target);
+      const prettierOptions = await prettier.resolveConfig(root);
 
-        await Promise.allSettled([
-          fs.mkdir(target, { recursive: true }),
-          writer.writeMock(DATA_WORD, fMock, withTypes),
-          writer.writeType(TYPE_WORD, fType, withTypes),
-        ]);
+      const fMock = prettier.format(mockedRaw, {
+        ...prettierOptions,
+        parser: "babel-ts",
+        endOfLine: "lf",
       });
+      const fType = prettier.format(typedRaw, {
+        ...prettierOptions,
+        parser: "babel-ts",
+        endOfLine: "lf",
+      });
+
+      const target = path.resolve(root, model);
+
+      const writer = new Writer(target);
+
+      await fs.mkdir(target, { recursive: true });
+
+      await Promise.allSettled([
+        writer.writeMock(DATA_WORD, fMock, withTypes),
+        writer.writeType(TYPE_WORD, fType, withTypes),
+      ]);
     });
+
+    await Promise.all(writeDataList);
+
+    await request.writeRoutes();
   } catch (error) {
     throw error;
   }

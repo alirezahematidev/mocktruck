@@ -7,7 +7,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./lib",
-    "rootDir": "./src",
+    "rootDir": ".",
     "skipLibCheck": true,
     "strict": true,
     "esModuleInterop": true,
@@ -16,7 +16,7 @@
     "module": "ESNext",
     "target": "ESNext",
     "allowJs": true,
-    "typeRoots": ["node_modules/@types", "jest"]
+    "typeRoots": ["node_modules/@types", "jest", "node"]
   },
   "ts-node": {
     "esm": true

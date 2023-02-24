@@ -1,2 +1,0 @@
-mod formatters;
-mod tests;

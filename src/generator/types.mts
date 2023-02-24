@@ -1,5 +1,5 @@
 import { TypeNotation } from "../constants/notations.enum.mjs";
-import { Truck } from "../interfaces/index.mjs";
+import { Truck } from "../typings/index.mjs";
 
 export type IPrimitive = string | number | bigint | boolean;
 
