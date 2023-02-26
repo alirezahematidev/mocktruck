@@ -1,12 +1,10 @@
 import * as cons from "../../constants/index.mjs";
-import { Truck } from "../../typings/index.mjs";
-import { IReturnEntries } from "../types.mjs";
+import { Truck } from "../../interfaces/index.mjs";
 import * as misc from "../../misc/index.mjs";
-import * as types from "../types.mjs";
 
 export class AutoGenerateId {
   public static generate(
-    list: IReturnEntries[],
+    list: Truck.IReturnEntries[],
     autoGenerateId: Truck.AutoGenerateIdOptions,
     increment?: () => number,
   ) {
@@ -22,7 +20,7 @@ export class AutoGenerateId {
           [field]: misc.generateId(strategy, index, increment),
           ...obj,
         };
-      }) as types.IReturnEntries[];
+      }) as Truck.IReturnEntries[];
 
       return mappedList;
     }

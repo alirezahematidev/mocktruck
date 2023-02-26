@@ -7,8 +7,9 @@ import serialize from "serialize-javascript";
 import { DATA_WORD, TYPE_WORD } from "../constants/index.mjs";
 import { Writer } from "./helpers/writer.mjs";
 import glob from "glob";
-import { Truck } from "../typings/index.mjs";
+import { Truck } from "../interfaces/index.mjs";
 import { Request } from "./helpers/request.mjs";
+import { parsePlugins } from "./plugin.js";
 
 type ImportedConfig = Record<string, Truck.Configuration>;
 
@@ -55,6 +56,8 @@ async function create(configs: Truck.Configuration) {
 
     const globalOptions = configOptions.globalOptions;
 
+    const plugins = configOptions.plugins || [];
+
     const clean = misc.cleaner(globalOptions);
 
     try {
@@ -93,9 +96,11 @@ async function create(configs: Truck.Configuration) {
 
       const isArray = Builder.entries.isArray;
 
+      const overridedMock = parsePlugins(plugins, mock);
+
       const modelOptions = Builder.modelOptions(model);
 
-      const input = serialize(mock, { isJSON: false });
+      const input = serialize(overridedMock, { isJSON: false });
 
       const options = misc.getOptions(globalOptions, modelOptions) ?? {};
 

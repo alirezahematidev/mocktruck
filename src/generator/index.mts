@@ -1,8 +1,7 @@
-import { Truck } from "../typings/index.mjs";
+import { Truck } from "../interfaces/index.mjs";
 import * as misc from "../misc/index.mjs";
 import * as gen from "../externals/pkg/index.js";
 import * as cons from "../constants/index.mjs";
-import * as types from "./types.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import isEqual from "lodash/isEqual.js";
 import { Logger } from "../log/index.mjs";
@@ -11,9 +10,9 @@ import { AutoGenerateId } from "./helpers/autoGenerateId.mjs";
 
 class Builder extends AutoGenerateId {
   private static logger = new Logger();
-  private static map = new Map<string, types.IMock>();
-  private static type = new Map<string, types.ITypeRecord>();
-  private static options: types.IOptions = {};
+  private static map = new Map<string, Truck.IMock>();
+  private static type = new Map<string, Truck.ITypeRecord>();
+  private static options: Truck.IOptions = {};
   private static isArray: boolean = false;
 
   public static get entries() {
@@ -41,11 +40,11 @@ class Builder extends AutoGenerateId {
     return Builder.logger;
   }
 
-  static build(schema: Truck.Schema): types.IReturnEntries {
+  static build(schema: Truck.Schema): Truck.IReturnEntries {
     try {
       const generator = new Generator(schema);
 
-      const properties = misc.getKeys(schema);
+      const properties = misc.getKeys<Truck.Schema>(schema);
 
       const entries = properties.map((property) => {
         const type = schema[property].type;
@@ -102,7 +101,7 @@ class Builder extends AutoGenerateId {
           default:
             return generator.default(property);
         }
-      }) as types.IMapping[];
+      }) as Truck.IMapping[];
 
       return misc.from(entries);
     } catch (error) {
@@ -226,7 +225,7 @@ class Builder extends AutoGenerateId {
     }
   }
 
-  public static refTyping(model: string, ref: types.TypeReference) {
+  public static refTyping(model: string, ref: Truck.TypeReference) {
     if (!Builder.type.has(model)) {
       Builder.type.set(model, {
         infer: cons.EMPTY,
@@ -266,7 +265,7 @@ class Builder extends AutoGenerateId {
     Builder.options[name] = options;
   }
 
-  private static update(name: string, entries: types.IMock) {
+  private static update(name: string, entries: Truck.IMock) {
     const prevEnteries = Builder.map.get(name);
 
     const equal = isEqual(prevEnteries, entries);
@@ -276,7 +275,7 @@ class Builder extends AutoGenerateId {
     Builder.map.set(name, entries);
   }
 
-  private static typedProperties(schema: Truck.Schema): types.TypedProperty[] {
+  private static typedProperties(schema: Truck.Schema): Truck.TypedProperty[] {
     const properties = misc.getKeys(schema);
 
     return properties.map((property) => {

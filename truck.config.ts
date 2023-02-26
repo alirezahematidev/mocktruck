@@ -1,6 +1,6 @@
-import { cli } from "./cli/index.mjs";
+import { Truck } from "./src/interfaces/index.mjs";
 
-export const configs: any = {
+export const configs: Truck.Configuration = {
   models: [
     {
       name: "users",

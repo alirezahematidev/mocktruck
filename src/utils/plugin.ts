@@ -1,17 +1,12 @@
-import { Truck } from "../typings/index.mjs";
+import { Truck } from "../interfaces/index.mjs";
 
-type GeneratedInput = Truck.IMock;
+function parsePlugins(
+  plugins: Truck.Plugin[],
+  initial: Truck.PluginEnteries,
+): Truck.PluginEnteries {
+  if (!plugins || !plugins.length) return initial;
 
-type TruckPlugin<T extends GeneratedInput> = (data:T) => T | Promise<T>
-
-
-
-async function parsePlugins<T extends GeneratedInput>(plugins:TruckPlugin<T>[],initialInput:T): Promise<T> {
-    let result: T = initialInput;
-    for (const fn of plugins) {
-      const fnResult = fn(result);
-      result = await (fnResult instanceof Promise ? fnResult : Promise.resolve(fnResult));
-    }
-    return result;
+  return plugins.reduce((data, plugin) => plugin(data), initial);
 }
-export {parsePlugins}
+
+export { parsePlugins };

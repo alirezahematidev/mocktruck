@@ -1,8 +1,7 @@
 import * as cons from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import * as generators from "../externals/pkg/index.js";
-import { ITypeRecord } from "../generator/types.mjs";
-import { Truck } from "../typings/index.mjs";
+import { Truck } from "../interfaces/index.mjs";
 
 /**
  * Wraps a synchronous function in an async function that returns a promise
@@ -637,7 +636,7 @@ export function mapObject<T extends object>(obj: T): MapObject {
  * @param type - An object containing the type definition and any references.
  * @returns A string representing the TypeScript definition.
  */
-export function typedRaw(name: string, type: ITypeRecord) {
+export function typedRaw(name: string, type: Truck.ITypeRecord) {
   let refs: string = "";
 
   let typenames: string[] = [name];

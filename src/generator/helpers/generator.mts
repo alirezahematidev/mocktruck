@@ -1,5 +1,4 @@
-import { Truck } from "../../typings/index.mjs";
-import { IReturnArray, IReturnObject, IReturnPrimitive } from "../types.mjs";
+import { Truck } from "../../interfaces/index.mjs";
 import * as misc from "../../misc/index.mjs";
 import * as cons from "../../constants/index.mjs";
 import * as gen from "../../externals/pkg/index.js";
@@ -27,7 +26,7 @@ export class Generator extends AutoGenerateId {
     };
   }
 
-  public array(property: string, builder: TBuilder): IReturnArray {
+  public array(property: string, builder: TBuilder): Truck.IReturnArray {
     const arraySchema = this.schema[property] as Truck.TArray;
 
     const arrayLength = arraySchema.count ?? cons.LENGTH;
@@ -39,21 +38,27 @@ export class Generator extends AutoGenerateId {
     );
 
     if (!misc.isOptionEnabled(autoGenerateId)) {
-      return [property, list] as IReturnArray;
+      return [property, list] as Truck.IReturnArray;
     }
 
     const mappedList = Generator.generate(list, autoGenerateId, this.counter());
 
-    return [property, mappedList || list] as IReturnArray;
+    return [property, mappedList || list] as Truck.IReturnArray;
   }
 
-  public object(property: string, builder: TBuilder): IReturnObject {
+  public object(property: string, builder: TBuilder): Truck.IReturnObject {
     const objectSchema = this.schema[property] as Truck.TStruct;
 
-    return [property, builder.build(objectSchema.schema)] as IReturnObject;
+    return [
+      property,
+      builder.build(objectSchema.schema),
+    ] as Truck.IReturnObject;
   }
 
-  public char(property: string, generator: CharCallback): IReturnPrimitive {
+  public char(
+    property: string,
+    generator: CharCallback,
+  ): Truck.IReturnPrimitive {
     const charSchema = this.schema[property] as Truck.TChar;
 
     const generated = generator();
@@ -63,7 +68,7 @@ export class Generator extends AutoGenerateId {
     return [property, casedChar];
   }
 
-  public digit(property: string): IReturnPrimitive {
+  public digit(property: string): Truck.IReturnPrimitive {
     const numberSchema = this.schema[property] as Truck.TDigit;
 
     const digit = gen.generate_number(numberSchema.length ?? cons.DIGIT);
@@ -71,7 +76,7 @@ export class Generator extends AutoGenerateId {
     return [property, misc.parseDigits(digit)];
   }
 
-  public bigint(property: string): IReturnPrimitive {
+  public bigint(property: string): Truck.IReturnPrimitive {
     const bigintSchema = this.schema[property] as Truck.TDigit;
 
     const bigint = gen.generate_number(bigintSchema.length ?? cons.DIGIT);
@@ -79,7 +84,7 @@ export class Generator extends AutoGenerateId {
     return [property, bigint];
   }
 
-  public date(property: string): IReturnPrimitive {
+  public date(property: string): Truck.IReturnPrimitive {
     const dateSchema = this.schema[property] as Truck.TDate;
 
     let randomDate = "";
@@ -93,25 +98,25 @@ export class Generator extends AutoGenerateId {
     return [property, randomDate];
   }
 
-  public domain(property: string): IReturnPrimitive {
+  public domain(property: string): Truck.IReturnPrimitive {
     const domain = gen.generate_domain();
 
     return [property, domain];
   }
 
-  public email(property: string): IReturnPrimitive {
+  public email(property: string): Truck.IReturnPrimitive {
     const email = gen.generate_email();
 
     return [property, email];
   }
 
-  public uuid(property: string): IReturnPrimitive {
+  public uuid(property: string): Truck.IReturnPrimitive {
     const uuid = gen.generate_uuid();
 
     return [property, uuid];
   }
 
-  public bool(property: string): IReturnPrimitive {
+  public bool(property: string): Truck.IReturnPrimitive {
     const boolSchema = this.schema[property] as Truck.TBool;
 
     const fr = boolSchema.frequency;
@@ -123,7 +128,7 @@ export class Generator extends AutoGenerateId {
     return [property, bool];
   }
 
-  public default(property: string): IReturnPrimitive {
+  public default(property: string): Truck.IReturnPrimitive {
     return [property, cons.UNKNOWN];
   }
 }

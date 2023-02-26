@@ -1,54 +1,57 @@
 export declare namespace Truck {
-  export type IPrimitive = string | number | bigint | boolean;
+  enum TypeNotation {
+    STRING = "string",
+    NUMBER = "number",
+    BOOL = "boolean",
+    BIGINT = "bigint",
+    UNKNOWN = "unknown",
+    OBJECT = "object",
+    ARRAY = "array",
+    NULL = "null",
+    UNDEFINED = "undefined",
+  }
 
-export type IObject = Record<string, IPrimitive>;
+  type IPrimitive = string | number | bigint | boolean;
 
-export type IArray = IObject[];
+  type IObject = Record<string, IPrimitive>;
 
-export type IComplex = IPrimitive | IObject | IArray;
+  type IArray = IObject[];
 
-export type IReturnArray = [string, IArray];
+  type IComplex = IPrimitive | IObject | IArray;
 
-export type IReturnPrimitive = [string, IPrimitive];
+  type IReturnArray = [string, IArray];
 
-export type IReturnObject = [string, IObject];
+  type IReturnPrimitive = [string, IPrimitive];
 
-export type IMapping = [string, IComplex];
+  type IReturnObject = [string, IObject];
 
-export type IReturnEntries = Record<string, IComplex>;
+  type IMapping = [string, IComplex];
 
-export type IMock = IReturnEntries | IReturnEntries[];
+  type IReturnEntries = Record<string, IComplex>;
 
-enum TypeNotation {
-  STRING = "string",
-  NUMBER = "number",
-  BOOL = "boolean",
-  BIGINT = "bigint",
-  UNKNOWN = "unknown",
-  OBJECT = "object",
-  ARRAY = "array",
-  NULL = "null",
-  UNDEFINED = "undefined",
-}
+  type IMock = IReturnEntries | IReturnEntries[];
 
-export type TypeReference = {
-  [ref: string]: string;
-};
+  type PluginEnteries = IMock;
 
-export type ITypeRecord = {
-  infer: string;
-  reference: Map<string, string>;
-};
+  type Plugin = (data: PluginEnteries) => PluginEnteries;
 
-export type IType = Record<string, ITypeRecord>;
+  type TypeReference = {
+    [ref: string]: string;
+  };
 
-export type IOptions = Record<string, Truck.Options>;
+  type ITypeRecord = {
+    infer: string;
+    reference: Map<string, string>;
+  };
 
-export type TypedProperty = {
-  property: string;
-  notation: TypeNotation;
-};
+  type IType = Record<string, ITypeRecord>;
 
+  type IOptions = Record<string, Truck.Options>;
+
+  type TypedProperty = {
+    property: string;
+    notation: TypeNotation;
+  };
 
   type NameTypeOptions = "firstname" | "lastname" | "fullname";
 
@@ -127,9 +130,9 @@ export type TypedProperty = {
     port?: number;
   };
 
-  export interface Schema {
+  export type Schema = {
     [property: string]: SchemaOptions;
-  }
+  };
 
   export interface TChar extends SharedTypeOptions {
     readonly type: CharTypeOptions;
@@ -171,6 +174,7 @@ export type TypedProperty = {
     models: ConfigModel | Array<ConfigModel>;
     globalOptions?: GlobalOptions;
     requests?: RequestOptions;
+    plugins?: Plugin[];
     output?: string;
     entry?: string;
   }
