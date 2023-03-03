@@ -1,4 +1,4 @@
-import { Truck } from "./src/interfaces/index.mjs";
+import Truck from "./src/interfaces/index.mjs";
 
 export const configs: Truck.Configuration = {
   models: [

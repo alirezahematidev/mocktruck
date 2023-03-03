@@ -3,16 +3,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import prettier from "prettier";
 
-type RequestRoute = {
+type TServiceRoute = {
   key: string;
   model: string;
   route: string;
 };
 
-export class Request {
-  private routes: RequestRoute[] = [];
+class TServices {
+  private routes: TServiceRoute[] = [];
 
-  public async writeRoutes() {
+  public async define() {
     try {
       const template = `
     import express from "express";
@@ -47,7 +47,7 @@ export class Request {
     }
   }
 
-  public async regenerateConfigs() {
+  public async regenerate() {
     const target = path.resolve(process.cwd(), "src/configs");
 
     try {
@@ -65,7 +65,7 @@ export class Request {
     }
   }
 
-  public async createRouteConfig(model: string, input: string, key: string) {
+  public async createConfig(model: string, input: string, key: string) {
     const target = path.resolve(process.cwd(), "src/configs");
 
     const options = await prettier.resolveConfig(target);
@@ -83,3 +83,5 @@ export class Request {
     this.routes.push({ key, model, route });
   }
 }
+
+export default TServices;

@@ -1,15 +1,15 @@
+import * as misc from "../misc/index.mjs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import prettier from "prettier";
-import { Builder } from "../generator/index.mjs";
-import * as misc from "../misc/index.mjs";
-import serialize from "serialize-javascript";
-import { DATA_WORD, TYPE_WORD } from "../constants/index.mjs";
-import { Writer } from "./helpers/writer.mjs";
 import glob from "glob";
-import { Truck } from "../interfaces/index.mjs";
-import { Request } from "./helpers/request.mjs";
-import { parsePlugins } from "./plugin.js";
+import serialize from "serialize-javascript";
+import TContent from "./helpers/contents.mjs";
+import TServices from "./helpers/services.mjs";
+import TDataBuilder from "./helpers/databuilder.mjs";
+import parsePlugins from "./plugin.js";
+import Truck from "../interfaces/index.mjs";
+import Builder from "../generator/index.mjs";
+import TApiRequest from "./helpers/api.mjs";
 
 type ImportedConfig = Record<string, Truck.Configuration>;
 
@@ -23,50 +23,36 @@ const globOptions: glob.IOptions = {
   },
 };
 
-function getEntry(entry?: string) {
-  const current = process.cwd();
+const $root = process.cwd();
 
-  if (entry) {
-    return path.resolve(current, entry);
+async function defineOutput(target: string) {
+  const output = path.resolve($root, target);
+
+  try {
+    await fs.access(output, fs.constants.R_OK);
+  } catch (error) {
+    await fs.mkdir(output);
   }
 
-  return current;
+  return output;
 }
 
-function getOutput(output?: string) {
-  /** Default output directory */
-  const DEFAULT_OUT = "out";
-
-  if (output) {
-    return output;
-  }
-
-  return DEFAULT_OUT;
-}
-
-async function create(configs: Truck.Configuration) {
+async function truck$(configs: Truck.Configuration) {
   try {
     const configure = misc.awaited(Builder.configure);
 
     const configOptions = await configure(configs);
 
-    const output = getOutput(configOptions.output);
-
-    const entry = getEntry(configOptions.entry);
-
     const globalOptions = configOptions.globalOptions;
-
-    const plugins = configOptions.plugins || [];
 
     const clean = misc.cleaner(globalOptions);
 
-    try {
-      await fs.access(output, fs.constants.R_OK);
-    } catch (err) {
-      await fs.mkdir(path.resolve(entry, output));
-    }
+    const plugins = configOptions.plugins || [];
 
-    const root = path.resolve(entry, output);
+    const [cout, rout] = await Promise.all([
+      defineOutput("contents"),
+      defineOutput("requests"),
+    ]);
 
     const data = misc.getKeys(Builder.entries.data);
 
@@ -81,72 +67,85 @@ async function create(configs: Truck.Configuration) {
         const rd = path.resolve(folderPath, dir);
 
         await fs.rm(rd, { recursive: true, force: true });
-        // logger.warn(`${dir} directory removed successfully!`);
       }
     };
 
-    await emptyFolder(root);
+    await Promise.all([emptyFolder(cout), emptyFolder(rout)]);
 
-    const request = new Request();
+    const contents = new TContent([cout, rout]);
 
-    await request.regenerateConfigs();
+    const services = new TServices();
 
-    const writeDataList = data.map(async (model) => {
-      const mock = Builder.entries.data[model];
+    await services.regenerate();
+
+    const dataList = data.map(async (model) => {
+      const $data = Builder.entries.data[model];
 
       const isArray = Builder.entries.isArray;
 
-      const overridedMock = parsePlugins(plugins, mock);
+      const overridesData = parsePlugins(plugins, $data);
 
       const modelOptions = Builder.modelOptions(model);
 
-      const input = serialize(overridedMock, { isJSON: false });
+      const input = serialize(overridesData, { isJSON: false });
 
       const options = misc.getOptions(globalOptions, modelOptions) ?? {};
 
-      const typedRaw = misc.typedRaw(model, Builder.types(model));
+      const usetype$ = misc.canUseTypes(options);
 
-      const withTypes = misc.canUseTypes(options);
+      const type$ = misc.getType$(model, Builder.types(model));
 
-      const mockedRaw = misc.mockedRaw({
+      const content$ = misc.getContent$({
         model,
         input,
         isArray,
-        withTypes,
+        usetype$,
       });
+
+      const api$ = misc.getApi$(model, isArray);
+
+      contents.getInstances(model);
 
       const key = misc.randomKey(8);
 
-      await request.createRouteConfig(model, input, key);
+      await services.createConfig(model, input, key);
 
-      const prettierOptions = await prettier.resolveConfig(root);
+      const ctarget = path.resolve(cout, model);
 
-      const fMock = prettier.format(mockedRaw, {
-        ...prettierOptions,
-        parser: "babel-ts",
-        endOfLine: "lf",
-      });
-      const fType = prettier.format(typedRaw, {
-        ...prettierOptions,
-        parser: "babel-ts",
-        endOfLine: "lf",
-      });
+      const rtarget = path.resolve(rout, model);
 
-      const target = path.resolve(root, model);
-
-      const writer = new Writer(target);
-
-      await fs.mkdir(target, { recursive: true });
-
-      await Promise.allSettled([
-        writer.writeMock(DATA_WORD, fMock, withTypes),
-        writer.writeType(TYPE_WORD, fType, withTypes),
+      await Promise.all([
+        fs.mkdir(ctarget, { recursive: true }),
+        fs.mkdir(rtarget, { recursive: true }),
       ]);
+
+      const maker = new TDataBuilder(ctarget);
+
+      const requests = new TApiRequest(rtarget);
+
+      const [fdata, ftype, fapi] = await misc.format(
+        [cout, content$],
+        [cout, type$],
+        [rout, api$],
+      );
+
+      await Promise.all([
+        maker.type(ftype, usetype$),
+        maker.data(fdata),
+        requests.type(ftype, usetype$),
+        requests.data(fapi),
+      ]);
+
+      await maker.index(usetype$);
     });
 
-    await Promise.all(writeDataList);
+    await Promise.all(dataList);
 
-    await request.writeRoutes();
+    await Promise.all([
+      contents.createContentIndex(),
+      contents.createApiIndex(6969),
+      services.define(),
+    ]);
   } catch (error) {
     throw error;
   }
@@ -155,7 +154,7 @@ async function create(configs: Truck.Configuration) {
 glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
   if (err) throw err;
 
-  let __immediate: NodeJS.Immediate;
+  let immediate$: NodeJS.Immediate;
 
   if (!matches || !matches.length) {
     console.log("no configuration file found");
@@ -166,7 +165,8 @@ glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
     console.log("multiple configuration files found. please provide one");
     process.exit(1);
   }
-  __immediate = setImmediate(async () => {
+
+  immediate$ = setImmediate(async () => {
     try {
       const match = matches[0];
 
@@ -200,7 +200,7 @@ glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
     } catch (error) {
       console.log(error);
     } finally {
-      clearImmediate(__immediate);
+      clearImmediate(immediate$);
     }
   });
 });
@@ -218,7 +218,7 @@ async function createConfigs(configs: Truck.Configuration) {
     const models = misc.parseIterable(configs.models);
 
     if (models.every(isValidModel)) {
-      return await create(configs);
+      return await truck$(configs);
     }
 
     throw new Error(

@@ -1,7 +1,8 @@
+import prettier from "prettier";
 import * as cons from "../constants/index.mjs";
-import { TypeNotation } from "../constants/notations.enum.mjs";
 import * as generators from "../externals/pkg/index.js";
-import { Truck } from "../interfaces/index.mjs";
+import Truck from "../interfaces/index.mjs";
+import { TypeNotation } from "../constants/notations.enum.mjs";
 
 /**
  * Wraps a synchronous function in an async function that returns a promise
@@ -636,7 +637,7 @@ export function mapObject<T extends object>(obj: T): MapObject {
  * @param type - An object containing the type definition and any references.
  * @returns A string representing the TypeScript definition.
  */
-export function typedRaw(name: string, type: Truck.ITypeRecord) {
+export function getType$(name: string, type: Truck.ITypeRecord) {
   let refs: string = "";
 
   let typenames: string[] = [name];
@@ -675,7 +676,7 @@ type MockedRaw = {
   input: string;
   model: string;
   isArray: boolean;
-  withTypes?: boolean;
+  usetype$?: boolean;
 };
 
 /**
@@ -685,7 +686,7 @@ type MockedRaw = {
  *   model is an array or not.
  * @returns A string containing the generated mock data.
  */
-export function mockedRaw(m: MockedRaw) {
+export function getContent$(m: MockedRaw) {
   let imp = joinStrings(
     cons.IMPORT,
     braces(cap(m.model)),
@@ -694,13 +695,13 @@ export function mockedRaw(m: MockedRaw) {
     cons.END,
   );
 
-  if (!m.withTypes) {
+  if (!m.usetype$) {
     imp = cons.EMPTY;
   }
 
   const typeDef = typedDef(m.model, cap(m.model), m.isArray);
 
-  const defExp = m.withTypes ? typeDef : m.model;
+  const defExp = m.usetype$ ? typeDef : m.model;
 
   const def = joinStrings(
     cons.CONST_WORD,
@@ -713,6 +714,51 @@ export function mockedRaw(m: MockedRaw) {
   const exp = joinStrings(cons.EXPORT, braces(m.model));
 
   return joinStrings(imp, cons.BREAK, def, cons.BREAK, exp);
+}
+
+export function getApi$(model: string, isArray: boolean) {
+  const cname = cap(model);
+
+  const name = stackString("get", cname, "Data");
+
+  const type = stackString(cname, isArray ? cons.BRACKET : cons.EMPTY);
+
+  const template = `
+  import fetch from "node-fetch";
+  import baseUrl from "../url";
+  import {${cname}} from "./type";
+  
+  async function ${name}():Promise<${type}> {
+    try {
+      const response = await fetch(baseUrl + "${model}");
+  
+      const key = response.headers.get("X-Truck-Key");
+  
+      if (!key) {
+        throw new Error("The api:${model} is undefined.");
+      }
+  
+      const data = (await response.json()) as ${type};
+  
+      const ${model} = Object.assign({}, data);
+  
+      Object.defineProperty(${model}, "__id", {
+        value: key,
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      });
+  
+      return ${model};
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  export default ${name};
+  `;
+
+  return template;
 }
 
 export function mapRoute(model: string, input: string, key: string) {
@@ -838,4 +884,24 @@ export function canUseTypes(
   }
 
   return wt;
+}
+
+type FormatEntry = [path: string, data: string];
+
+export async function format(...enteries: FormatEntry[]) {
+  const templates = await Promise.all(
+    enteries.map(async ([entry, data]) => {
+      const options = await prettier.resolveConfig(entry);
+
+      const formatted = prettier.format(data, {
+        ...options,
+        parser: "babel-ts",
+        endOfLine: "lf",
+      });
+
+      return formatted;
+    }),
+  );
+
+  return templates;
 }

@@ -1,7 +1,7 @@
-import { Truck } from "../../interfaces/index.mjs";
 import * as misc from "../../misc/index.mjs";
 import * as cons from "../../constants/index.mjs";
 import * as gen from "../../externals/pkg/index.js";
+import Truck from "../../interfaces/index.mjs";
 import { TBuilder } from "../index.mjs";
 import { AutoGenerateId } from "./autoGenerateId.mjs";
 

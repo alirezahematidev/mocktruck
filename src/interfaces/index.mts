@@ -1,4 +1,4 @@
-export declare namespace Truck {
+declare namespace Truck {
   enum TypeNotation {
     STRING = "string",
     NUMBER = "number",
@@ -175,9 +175,9 @@ export declare namespace Truck {
     globalOptions?: GlobalOptions;
     requests?: RequestOptions;
     plugins?: Plugin[];
-    output?: string;
-    entry?: string;
   }
 
   export interface ConfigurationOptions extends Omit<Configuration, "models"> {}
 }
+
+export default Truck;

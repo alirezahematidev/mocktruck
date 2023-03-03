@@ -21,6 +21,6 @@
   "ts-node": {
     "esm": true
   },
-  "include": ["src", "src/typings.d.ts", "*.mts"],
-  "exclude": ["node_modules", "lib", "bin", "out"]
+  "include": ["src", "src/typings.d.ts", "contents", "requests", "*.mts"],
+  "exclude": ["node_modules", "lib", "bin"]
 }

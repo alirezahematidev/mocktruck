@@ -1,4 +1,4 @@
-import { Truck } from "../interfaces/index.mjs";
+import Truck from "../interfaces/index.mjs";
 
 function parsePlugins(
   plugins: Truck.Plugin[],
@@ -9,4 +9,4 @@ function parsePlugins(
   return plugins.reduce((data, plugin) => plugin(data), initial);
 }
 
-export { parsePlugins };
+export default parsePlugins;
