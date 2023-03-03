@@ -12,6 +12,23 @@ type TServiceRoute = {
 class TServices {
   private routes: TServiceRoute[] = [];
 
+  public async index(port: number) {
+    const target = path.resolve(process.cwd(), "src/services/index.ts");
+
+    const data = await fs.readFile(target);
+
+    const content = data.toString();
+
+    const modified = content.replace(
+      /(app\.listen)\((\d+)\)/gim,
+      (match, exp: string) => {
+        return `${exp}(${port})`;
+      },
+    );
+
+    await fs.writeFile(target, modified);
+  }
+
   public async define() {
     try {
       const template = `

@@ -16,11 +16,18 @@
     "module": "ESNext",
     "target": "ESNext",
     "allowJs": true,
-    "typeRoots": ["node_modules/@types", "jest", "node"]
+    "baseUrl": ".",
+    "paths": {
+      "truck:contents": ["./contents/index.ts"],
+      "truck:requests": ["./requests/index.ts"]
+    }
   },
   "ts-node": {
-    "esm": true
+    "esm": true,
+    "compilerOptions": {
+      "target": "es6"
+    }
   },
-  "include": ["src", "src/typings.d.ts", "contents", "requests", "*.mts"],
-  "exclude": ["node_modules", "lib", "bin"]
+  "include": ["src", "src/typings.d.ts", "contents", "requests", "cli"],
+  "exclude": ["node_modules", "lib"]
 }

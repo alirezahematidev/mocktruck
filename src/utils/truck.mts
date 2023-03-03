@@ -10,6 +10,8 @@ import parsePlugins from "./plugin.js";
 import Truck from "../interfaces/index.mjs";
 import Builder from "../generator/index.mjs";
 import TApiRequest from "./helpers/api.mjs";
+import { exec } from "child_process";
+import type { Args } from "cli/index.mjs";
 
 type ImportedConfig = Record<string, Truck.Configuration>;
 
@@ -37,7 +39,7 @@ async function defineOutput(target: string) {
   return output;
 }
 
-async function truck$(configs: Truck.Configuration) {
+async function truck$(configs: Truck.Configuration, args: Args) {
   try {
     const configure = misc.awaited(Builder.configure);
 
@@ -143,73 +145,84 @@ async function truck$(configs: Truck.Configuration) {
 
     await Promise.all([
       contents.createContentIndex(),
-      contents.createApiIndex(6969),
+      contents.createApiIndex(args.port ?? 6969),
       services.define(),
     ]);
+
+    await services.index(args.port ?? 6969);
+
+    if (args.server) {
+      exec("yarn node:serve");
+      console.log("server is running...");
+    }
   } catch (error) {
     throw error;
   }
 }
 
-glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
-  if (err) throw err;
+function truck(args: Args) {
+  glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
+    if (err) throw err;
 
-  let immediate$: NodeJS.Immediate;
+    let immediate$: NodeJS.Immediate;
 
-  if (!matches || !matches.length) {
-    console.log("no configuration file found");
-    process.exit(1);
-  }
+    if (!matches || !matches.length) {
+      console.log("no configuration file found");
+      process.exit(1);
+    }
 
-  if (matches.length > 1) {
-    console.log("multiple configuration files found. please provide one");
-    process.exit(1);
-  }
+    if (matches.length > 1) {
+      console.log("multiple configuration files found. please provide one");
+      process.exit(1);
+    }
 
-  immediate$ = setImmediate(async () => {
-    try {
-      const match = matches[0];
+    immediate$ = setImmediate(async () => {
+      try {
+        const match = matches[0];
 
-      const importedConfig: ImportedConfig = await import("file://" + match);
+        const importedConfig: ImportedConfig = await import("file://" + match);
 
-      const proxyHandler = {
-        get(target: ImportedConfig, prop: string) {
-          if (["default", "configs"].includes(prop)) {
-            if (isValidConfiguration(target[prop])) {
-              return target[prop];
+        const proxyHandler = {
+          get(target: ImportedConfig, prop: string) {
+            if (["default", "configs"].includes(prop)) {
+              if (isValidConfiguration(target[prop])) {
+                return target[prop];
+              }
+              return null;
             }
             return null;
-          }
-          return null;
-        },
-      };
+          },
+        };
 
-      const configProxy = new Proxy(importedConfig, proxyHandler);
+        const configProxy = new Proxy(importedConfig, proxyHandler);
 
-      const configs = configProxy.default || configProxy.configs;
+        const configs = configProxy.default || configProxy.configs;
 
-      if (configs) {
-        return await createConfigs(configs);
+        if (configs) {
+          return await createConfigs(configs, args);
+        }
+
+        console.log(
+          "The configuration must be export default or export name by `configs`",
+        );
+
+        process.exit(1);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        clearImmediate(immediate$);
       }
-
-      console.log(
-        "The configuration must be export default or export name by `configs`",
-      );
-
-      process.exit(1);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      clearImmediate(immediate$);
-    }
+    });
   });
-});
+}
+
+export default truck;
 
 function isValidConfiguration(configs: Truck.Configuration) {
   return !!(configs && configs.models);
 }
 
-async function createConfigs(configs: Truck.Configuration) {
+async function createConfigs(configs: Truck.Configuration, args: Args) {
   function isValidModel(model: Truck.ConfigModel) {
     return Boolean(model.name) && misc.isOptionEnabled(model.schema);
   }
@@ -218,7 +231,7 @@ async function createConfigs(configs: Truck.Configuration) {
     const models = misc.parseIterable(configs.models);
 
     if (models.every(isValidModel)) {
-      return await truck$(configs);
+      return await truck$(configs, args);
     }
 
     throw new Error(

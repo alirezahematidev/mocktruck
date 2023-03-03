@@ -10,7 +10,7 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/i,
+        test: /\.(ts|tsx|mts)$/i,
         loader: "ts-loader",
         exclude: ["/node_modules/"],
       },
@@ -21,7 +21,16 @@ const config = {
     ],
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".jsx", ".js", ".json", ".type"],
+    extensions: [
+      ".tsx",
+      ".ts",
+      ".jsx",
+      ".js",
+      ".json",
+      ".mts",
+      ".cjs",
+      ".type",
+    ],
   },
 };
 

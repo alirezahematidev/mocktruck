@@ -2,10 +2,11 @@
   "name": "truck",
   "version": "0.0.1",
   "description": "Locally mock CRUD apis",
-  "main": "src/index.ts",
+  "main": "bin/index.mts",
   "type": "module",
   "scripts": {
-    "start": "node bin/index.mjs",
+    "cli": "ts-node bin/index.mts",
+    "cli:invoke": "ts-node cli/index.mts",
     "start:rs": "cd ./src/externals && cargo run lib.rs",
     "build:rs": "cd ./src/externals && cargo build --release",
     "build:wasm": "cd ./src/externals && yarn test:wasm && wasm-pack build --target nodejs --out-name index",
@@ -16,7 +17,6 @@
     "compile": "tsc -b",
     "test": "yarn compile && jest",
     "test:wasm": "cd ./src/externals && cargo test",
-    "cli": "node bin/index.mjs",
     "node:serve": "nodemon src/services/index.ts"
   },
   "files": [
@@ -37,6 +37,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.20.2",
     "@types/configstore": "^6.0.0",
+    "@types/esm": "^3.2.0",
     "@types/express": "^4.17.17",
     "@types/ffi-napi": "^4.0.7",
     "@types/glob": "^8.1.0",
@@ -45,7 +46,9 @@
     "@types/prettier": "^2.7.2",
     "@types/resolve": "^1.20.2",
     "@types/serialize-javascript": "^5.0.2",
+    "@types/vscode": "^1.76.0",
     "@types/webpack": "^5.28.0",
+    "@types/yargs": "^17.0.22",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "@webpack-cli/generators": "^3.0.1",
@@ -53,6 +56,7 @@
     "boxen": "^7.0.1",
     "chalk": "^5.2.0",
     "configstore": "^6.0.0",
+    "esm": "^3.2.25",
     "ffi-napi": "^4.0.3",
     "glob": "^8.1.0",
     "html-webpack-plugin": "^5.5.0",
@@ -62,6 +66,7 @@
     "lodash": "^4.17.21",
     "mlly": "^1.1.1",
     "nodemon": "^2.0.20",
+    "ora": "^6.1.2",
     "prettier": "^2.8.3",
     "prettier-plugin-jsdoc": "^0.4.2",
     "resolve": "^1.22.1",
@@ -72,13 +77,15 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",
     "typescript": "^4.9.5",
+    "vscode": "^1.1.37",
+    "vscode-languageclient": "^8.1.0",
     "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1",
-    "yargs": "^17.6.2"
+    "webpack-cli": "^5.0.1"
   },
   "dependencies": {
     "axios": "^1.2.3",
     "express": "^4.18.2",
-    "node-fetch": "^3.3.0"
+    "node-fetch": "^3.3.0",
+    "yargs": "^17.7.1"
   }
 }

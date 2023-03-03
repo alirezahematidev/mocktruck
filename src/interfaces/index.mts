@@ -123,13 +123,6 @@ declare namespace Truck {
     options?: Options;
   };
 
-  type RequestOptions = {
-    useAxios?: boolean;
-    delayedTime?: number;
-    methods?: string[];
-    port?: number;
-  };
-
   export type Schema = {
     [property: string]: SchemaOptions;
   };
@@ -173,7 +166,6 @@ declare namespace Truck {
   export interface Configuration {
     models: ConfigModel | Array<ConfigModel>;
     globalOptions?: GlobalOptions;
-    requests?: RequestOptions;
     plugins?: Plugin[];
   }
 
