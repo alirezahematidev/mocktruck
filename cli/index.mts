@@ -1,6 +1,6 @@
-import truck from "../src/utils/truck.mjs";
+import { Program } from "src/utils/helpers/program.mjs";
 import yargs from "yargs";
-import { exec } from "child_process";
+import truck from "../src/utils/truck.mjs";
 
 type Args = Awaited<typeof args>;
 
@@ -25,10 +25,20 @@ const args = yargs(process.argv.slice(2))
     return true;
   }).argv;
 
-truck(args as Args);
+function runProgram() {
+  Program.run();
+
+  try {
+    truck(args as Args, Program.instance());
+
+    process.on("SIGINT", () => {
+      Program.stop();
+    });
+  } catch (error) {
+    Program.fail("failed!");
+  }
+}
+
+export default runProgram;
 
 export type { Args };
-
-export default () => exec("yarn cli:invoke");
-
-// export default args;

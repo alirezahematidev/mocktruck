@@ -12,6 +12,7 @@ import Builder from "../generator/index.mjs";
 import TApiRequest from "./helpers/api.mjs";
 import { exec } from "child_process";
 import type { Args } from "cli/index.mjs";
+import { Ora } from "ora";
 
 type ImportedConfig = Record<string, Truck.Configuration>;
 
@@ -39,7 +40,7 @@ async function defineOutput(target: string) {
   return output;
 }
 
-async function truck$(configs: Truck.Configuration, args: Args) {
+async function truck$(configs: Truck.Configuration, args: Args, program: Ora) {
   try {
     const configure = misc.awaited(Builder.configure);
 
@@ -153,6 +154,7 @@ async function truck$(configs: Truck.Configuration, args: Args) {
 
     if (args.server) {
       exec("yarn node:serve");
+      program.stop();
       console.log("server is running...");
     }
   } catch (error) {
@@ -160,7 +162,7 @@ async function truck$(configs: Truck.Configuration, args: Args) {
   }
 }
 
-function truck(args: Args) {
+function run(args: Args, program: Ora) {
   glob("**/truck.config.{js,ts,mjs,mts}", globOptions, (err, matches) => {
     if (err) throw err;
 
@@ -199,7 +201,7 @@ function truck(args: Args) {
         const configs = configProxy.default || configProxy.configs;
 
         if (configs) {
-          return await createConfigs(configs, args);
+          return await createConfigs(configs, args, program);
         }
 
         console.log(
@@ -216,13 +218,17 @@ function truck(args: Args) {
   });
 }
 
-export default truck;
+export default run;
 
 function isValidConfiguration(configs: Truck.Configuration) {
   return !!(configs && configs.models);
 }
 
-async function createConfigs(configs: Truck.Configuration, args: Args) {
+async function createConfigs(
+  configs: Truck.Configuration,
+  args: Args,
+  program: Ora,
+) {
   function isValidModel(model: Truck.ConfigModel) {
     return Boolean(model.name) && misc.isOptionEnabled(model.schema);
   }
@@ -231,7 +237,7 @@ async function createConfigs(configs: Truck.Configuration, args: Args) {
     const models = misc.parseIterable(configs.models);
 
     if (models.every(isValidModel)) {
-      return await truck$(configs, args);
+      return await truck$(configs, args, program);
     }
 
     throw new Error(
