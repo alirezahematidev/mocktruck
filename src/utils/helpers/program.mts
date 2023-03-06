@@ -1,29 +1,29 @@
 import ora, { Ora } from "ora";
 
-export class Program {
-  private static spinner: Ora;
+export class TruckProgram {
+  private spinner: Ora = ora();
 
-  constructor() {
-    Program.spinner = ora("Generating...");
-  }
-
-  static instance() {
+  public instance() {
     return this.spinner;
   }
 
-  static run() {
-    this.spinner.start();
+  public start(text: string) {
+    return this.spinner.start(text);
   }
 
-  static stop() {
-    this.spinner.stop();
+  public succeed(text: string) {
+    return this.spinner.succeed(text);
   }
 
-  static succeed(text?: string) {
-    this.spinner.succeed(text);
+  public fail(text: string) {
+    return this.spinner.fail(text);
   }
 
-  static fail(text?: string) {
-    this.spinner.fail(text);
+  public stop() {
+    return this.spinner.stop();
+  }
+
+  public clear() {
+    return this.spinner.clear();
   }
 }

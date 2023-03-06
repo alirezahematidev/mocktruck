@@ -7,4 +7,8 @@ app.use(express.json());
 
 app.use(router);
 
-app.listen(6969).on("error", (err) => console.log(err.message));
+const server = () => {
+  app.listen(6969).on("error", (err) => console.log(err.message));
+};
+
+export default server;

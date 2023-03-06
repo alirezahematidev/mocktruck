@@ -672,13 +672,6 @@ export function getType$(name: string, type: Truck.ITypeRecord) {
   return joinStrings(refs, cons.BREAK, def, cons.BREAK, exp);
 }
 
-type MockedRaw = {
-  input: string;
-  model: string;
-  isArray: boolean;
-  usetype$?: boolean;
-};
-
 /**
  * Generates mock data for a given model and input.
  *
@@ -686,32 +679,37 @@ type MockedRaw = {
  *   model is an array or not.
  * @returns A string containing the generated mock data.
  */
-export function getContent$(m: MockedRaw) {
+export function getContent$(
+  model: string,
+  input: string,
+  isArray: boolean,
+  usetype?: boolean,
+) {
   let imp = joinStrings(
     cons.IMPORT,
-    braces(cap(m.model)),
+    braces(cap(model)),
     cons.FROM_WORD,
     quotes("./" + cons.TYPE_WORD),
     cons.END,
   );
 
-  if (!m.usetype$) {
+  if (!usetype) {
     imp = cons.EMPTY;
   }
 
-  const typeDef = typedDef(m.model, cap(m.model), m.isArray);
+  const typeDef = typedDef(model, cap(model), isArray);
 
-  const defExp = m.usetype$ ? typeDef : m.model;
+  const defExp = usetype ? typeDef : model;
 
   const def = joinStrings(
     cons.CONST_WORD,
     defExp,
     cons.EQUALS,
-    m.input,
+    input,
     cons.END,
   );
 
-  const exp = joinStrings(cons.EXPORT, braces(m.model));
+  const exp = joinStrings(cons.EXPORT, braces(model));
 
   return joinStrings(imp, cons.BREAK, def, cons.BREAK, exp);
 }

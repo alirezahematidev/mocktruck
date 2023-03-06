@@ -1,3 +1,5 @@
+export * from "./global.constants.mjs";
+
 export const LENGTH = 10;
 
 export const DIGIT = 8;

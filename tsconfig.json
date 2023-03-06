@@ -16,7 +16,6 @@
     "module": "ESNext",
     "target": "ESNext",
     "allowJs": true,
-    "baseUrl": ".",
     "paths": {
       "truck:contents": ["./contents/index.ts"],
       "truck:requests": ["./requests/index.ts"]

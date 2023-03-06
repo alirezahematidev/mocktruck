@@ -1,6 +1,4 @@
-import { Program } from "src/utils/helpers/program.mjs";
 import yargs from "yargs";
-import truck from "../src/utils/truck.mjs";
 
 type Args = Awaited<typeof args>;
 
@@ -25,20 +23,6 @@ const args = yargs(process.argv.slice(2))
     return true;
   }).argv;
 
-function runProgram() {
-  Program.run();
-
-  try {
-    truck(args as Args, Program.instance());
-
-    process.on("SIGINT", () => {
-      Program.stop();
-    });
-  } catch (error) {
-    Program.fail("failed!");
-  }
-}
-
-export default runProgram;
+export default args as Args;
 
 export type { Args };

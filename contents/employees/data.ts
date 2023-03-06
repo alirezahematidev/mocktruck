@@ -1,5 +1,5 @@
 import { Employees } from "./type";
 
-const employees: Employees = { firstname: "Lucius", age: 71785171 };
+const employees: Employees = { firstname: "Arjun", age: 47800512 };
 
 export { employees };
