@@ -18,7 +18,7 @@ async function getUsersData(): Promise<Users> {
 
     Object.defineProperty(users, "__id", {
       value: key,
-      enumerable: false,
+      enumerable: true,
       configurable: false,
       writable: false,
     });

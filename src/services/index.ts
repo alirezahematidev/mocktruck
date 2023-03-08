@@ -7,8 +7,8 @@ app.use(express.json());
 
 app.use(router);
 
-const server = () => {
-  app.listen(6969).on("error", (err) => console.log(err.message));
+const server = (port?: number) => {
+  app.listen(port ?? 6969).on("error", (err) => console.log(err.message));
 };
 
 export default server;

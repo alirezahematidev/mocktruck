@@ -1,7 +1,10 @@
+import { createCommonJS } from "mlly";
 import * as misc from "../../misc/index.mjs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import prettier from "prettier";
+
+const { __dirname } = createCommonJS(import.meta.url);
 
 type TServiceRoute = {
   key: string;
@@ -12,43 +15,43 @@ type TServiceRoute = {
 class TServices {
   private routes: TServiceRoute[] = [];
 
-  public async index(port: number) {
-    const target = path.resolve(process.cwd(), "src/services/index.ts");
+  // public async index(port: number) {
+  //   const target = path.resolve(process.cwd(), "src/services/index.ts");
 
-    const data = await fs.readFile(target);
+  //   const data = await fs.readFile(target);
 
-    const content = data.toString();
+  //   const content = data.toString();
 
-    const modified = content.replace(
-      /(app\.listen)\((\d+)\)/gim,
-      (match, exp: string) => {
-        return `${exp}(${port})`;
-      },
-    );
+  //   const modified = content.replace(
+  //     /(app\.listen)\((\d+)\)/gim,
+  //     (match, exp: string) => {
+  //       return `${exp}(${port})`;
+  //     },
+  //   );
 
-    await fs.writeFile(target, modified);
-  }
+  //   await fs.writeFile(target, modified);
+  // }
 
   public async define() {
     try {
       const template = `
-    import express from "express";
-    ${this.routes
-      .map(
-        (r) =>
-          `import ${r.model}Input from "../configs/${r.model}_${r.key}.mjs"`,
-      )
-      .join("\n")}
+      import express from "express";
+      ${this.routes
+        .map(
+          (r) =>
+            `import ${r.model}Input from "../configs/${r.model}_${r.key}.mjs"`,
+        )
+        .join("\n")}
 
 
-    const router = express.Router();
+      const router = express.Router();
 
-    ${this.routes.map((r) => r.route).join("\n")}
+      ${this.routes.map((r) => r.route).join("\n")}
 
-    export default router;
+      export default router;
     `;
 
-      const target = path.resolve(process.cwd(), "src/services", "routes.ts");
+      const target = path.resolve(__dirname, "../../services", "routes.ts");
 
       const options = await prettier.resolveConfig(target);
 
@@ -65,7 +68,7 @@ class TServices {
   }
 
   public async regenerate() {
-    const target = path.resolve(process.cwd(), "src/configs");
+    const target = path.resolve(__dirname, "../../configs");
 
     try {
       await fs.access(target, fs.constants.R_OK);
@@ -83,7 +86,7 @@ class TServices {
   }
 
   public async createConfig(model: string, input: string, key: string) {
-    const target = path.resolve(process.cwd(), "src/configs");
+    const target = path.resolve(__dirname, "../../configs");
 
     const options = await prettier.resolveConfig(target);
 

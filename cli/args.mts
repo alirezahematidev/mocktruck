@@ -1,8 +1,12 @@
 import yargs from "yargs";
 
-type Args = Awaited<typeof args>;
-
 const args = yargs(process.argv.slice(2))
+  .option("input", {
+    alias: "i",
+    describe: "Config file path",
+    type: "string",
+    requiresArg: true,
+  })
   .option("server", {
     alias: "s",
     describe: "Run server",
@@ -10,7 +14,7 @@ const args = yargs(process.argv.slice(2))
   })
   .option("port", {
     alias: "p",
-    describe: "-p <port number>",
+    describe: "Server specific port",
     type: "number",
     requiresArg: true,
   })
@@ -21,8 +25,7 @@ const args = yargs(process.argv.slice(2))
       console.log("port option is useless. because server is not running");
     }
     return true;
-  }).argv;
+  })
+  .parseSync();
 
-export default args as Args;
-
-export type { Args };
+export default args;

@@ -11,12 +11,11 @@ import parsePlugins from "./plugin.js";
 import Builder from "../generator/index.mjs";
 import TApiRequest from "./helpers/api.mjs";
 import { __CONTENTS__, __REQUESTS__ } from "../constants/global.constants.mjs";
+import { TruckArgs } from "../../cli/types/cli.type.mjs";
 
-type Matcher = "default" | "configs";
+const exportMatchers: ReadonlyArray<string> = ["default", "configs"];
 
-const exportMatchers: ReadonlyArray<Matcher> = ["default", "configs"];
-
-type ImportedConfig = Record<Matcher, Truck.Configuration>;
+type ImportedConfig = Record<string, Truck.Configuration>;
 
 async function defineOutput(target: string) {
   const output = path.resolve(process.cwd(), target);
@@ -74,21 +73,12 @@ const makeDirectories = async (...paths: string[]) => {
 
 class TruckDriver {
   private matcher: string;
-  // private globOptions: glob.IOptions;
-  //   private args: Args;
+  private args: TruckArgs;
 
-  constructor() {
-    // super();
-
-    // this.args = args;
+  constructor(args: TruckArgs) {
+    this.args = args;
 
     this.matcher = "**/truck.config.{js,ts,mjs,mts}";
-
-    // this.globOptions = {
-    //   absolute: true,
-    //   mark: true,
-    //   cwd: process.cwd(),
-    // };
   }
 
   private async drive(configs: Truck.Configuration) {
@@ -175,11 +165,11 @@ class TruckDriver {
 
       await Promise.all([
         contents.createContentIndex(),
-        contents.createApiIndex(6969 ?? 6969),
+        contents.createApiIndex(this.args.port ?? 6969),
         services.define(),
       ]);
 
-      await services.index(6969 ?? 6969);
+      // await services.index(this.args.port ?? 6969);
     } catch (error) {
       throw error;
     }
@@ -200,7 +190,7 @@ class TruckDriver {
       const importedConfig: ImportedConfig = await import("file://" + match);
 
       const proxyHandler = {
-        get(target: ImportedConfig, prop: Matcher) {
+        get(target: ImportedConfig, prop: string) {
           if (exportMatchers.includes(prop)) {
             if (isValidConfiguration(target[prop])) {
               return target[prop];

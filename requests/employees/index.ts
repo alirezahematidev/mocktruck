@@ -18,7 +18,7 @@ async function getEmployeesData(): Promise<Employees> {
 
     Object.defineProperty(employees, "__id", {
       value: key,
-      enumerable: false,
+      enumerable: true,
       configurable: false,
       writable: false,
     });

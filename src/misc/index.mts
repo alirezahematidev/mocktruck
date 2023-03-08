@@ -742,7 +742,7 @@ export function getApi$(model: string, isArray: boolean) {
   
       Object.defineProperty(${model}, "__id", {
         value: key,
-        enumerable: false,
+        enumerable: true,
         configurable: false,
         writable: false,
       });
