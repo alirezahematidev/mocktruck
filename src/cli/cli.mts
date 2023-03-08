@@ -1,9 +1,9 @@
 import isError from "lodash/isError.js";
-import { __PORT__ } from "../src/constants/global.constants.mjs";
-import Logger from "../src/log/index.mjs";
-import server from "../src/services/index.js";
-import TruckDriver from "../src/utils/drive.mjs";
 import args from "./args.mjs";
+import TruckDriver from "../utils/drive.mjs";
+import { __PORT__ } from "../constants/global.constants.mjs";
+import Logger from "../log/index.mjs";
+import server from "../services/index.js";
 
 class TruckCommand extends TruckDriver {
   private port: number;

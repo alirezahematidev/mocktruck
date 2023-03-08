@@ -5,7 +5,7 @@ import Truck from "../interfaces/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import Logger from "../log/index.mjs";
 import { Socket } from "node:net";
-import { TruckArgs } from "../../cli/types/cli.type.mjs";
+// import { TruckArgs } from "../../cli/types/cli.type.mjs";
 
 /**
  * Wraps a synchronous function in an async function that returns a promise
@@ -717,11 +717,7 @@ export function getContent$(
   return joinStrings(imp, cons.BREAK, def, cons.BREAK, exp);
 }
 
-export async function getApi$(
-  model: string,
-  isArray: boolean,
-  args: TruckArgs,
-) {
+export async function getApi$(model: string, isArray: boolean, args: any) {
   if (!args.server) return;
 
   const cname = cap(model);

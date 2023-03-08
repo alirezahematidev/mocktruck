@@ -11,7 +11,7 @@ import parsePlugins from "./plugin.js";
 import Builder from "../generator/index.mjs";
 import TApiRequest from "./helpers/api.mjs";
 import { __CONTENTS__, __REQUESTS__ } from "../constants/global.constants.mjs";
-import { TruckArgs } from "../../cli/types/cli.type.mjs";
+// import { TruckArgs } from "../../cli/types/cli.type.mjs";
 import Logger from "../log/index.mjs";
 import isError from "lodash/isError.js";
 
@@ -87,9 +87,9 @@ const makeDirectories = async (...paths: string[]) => {
 
 class TruckDriver extends Logger {
   private matcher: string;
-  private args: TruckArgs;
+  private args: any;
 
-  constructor(args: TruckArgs) {
+  constructor(args: any) {
     super();
 
     this.args = args;

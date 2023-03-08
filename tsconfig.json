@@ -7,7 +7,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./lib",
-    "rootDir": ".",
+    "rootDir": "./src",
     "skipLibCheck": true,
     "strict": true,
     "esModuleInterop": true,
@@ -24,6 +24,6 @@
   "ts-node": {
     "esm": true
   },
-  "include": ["src", "src/typings.d.ts", "cli"],
+  "include": ["src", "src/typings.d.ts"],
   "exclude": ["node_modules", "lib"]
 }
