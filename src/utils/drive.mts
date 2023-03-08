@@ -12,6 +12,8 @@ import Builder from "../generator/index.mjs";
 import TApiRequest from "./helpers/api.mjs";
 import { __CONTENTS__, __REQUESTS__ } from "../constants/global.constants.mjs";
 import { TruckArgs } from "../../cli/types/cli.type.mjs";
+import Logger from "../log/index.mjs";
+import isError from "lodash/isError.js";
 
 const exportMatchers: ReadonlyArray<string> = ["default", "configs"];
 
@@ -55,6 +57,12 @@ const emptyFolders = async (
 
     await Promise.all(removeTasks);
   } catch (error) {
+    if (isError(error)) {
+      const logger = new Logger();
+
+      logger.fail(212, { error: error.message });
+      process.exit(0);
+    }
     throw error;
   }
 };
@@ -67,15 +75,23 @@ const makeDirectories = async (...paths: string[]) => {
 
     await Promise.all(makers);
   } catch (error) {
+    if (isError(error)) {
+      const logger = new Logger();
+
+      logger.fail(212, { error: error.message });
+      process.exit(0);
+    }
     throw error;
   }
 };
 
-class TruckDriver {
+class TruckDriver extends Logger {
   private matcher: string;
   private args: TruckArgs;
 
   constructor(args: TruckArgs) {
+    super();
+
     this.args = args;
 
     this.matcher = "**/truck.config.{js,ts,mjs,mts}";
@@ -137,7 +153,7 @@ class TruckDriver {
 
         const __content = misc.getContent$(model, input, isArray, usetype);
 
-        const __api = misc.getApi$(model, isArray);
+        const __api = await misc.getApi$(model, isArray, this.args);
 
         await makeDirectories(contentTarget, requestTarget);
 
@@ -151,26 +167,36 @@ class TruckDriver {
           [requestOut, __api],
         );
 
-        await Promise.all([
-          maker.type(fType, usetype),
-          maker.data(fData),
-          requests.type(fType, usetype),
-          requests.data(fApi),
-        ]);
+        await Promise.all(
+          [
+            maker.type(fType, usetype),
+            maker.data(fData),
+            requests.type(fType, usetype, this.args.server),
+            requests.data(fApi, this.args.server),
+          ].filter(Boolean),
+        );
 
         await maker.index(usetype);
+
+        this.success(201, { model });
       });
 
       await Promise.all(modelMapping);
 
-      await Promise.all([
-        contents.createContentIndex(),
-        contents.createApiIndex(this.args.port ?? 6969),
-        services.define(),
-      ]);
-
-      // await services.index(this.args.port ?? 6969);
+      await Promise.all(
+        [
+          contents.createContentIndex(),
+          services.define(),
+          contents.createApiIndex(this.args),
+        ].filter(Boolean),
+      );
     } catch (error) {
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
       throw error;
     }
   }
@@ -183,8 +209,7 @@ class TruckDriver {
       });
 
       if (!match) {
-        console.log("no configuration file found");
-        process.exit(1);
+        return this.fail(206);
       }
 
       const importedConfig: ImportedConfig = await import("file://" + match);
@@ -209,13 +234,15 @@ class TruckDriver {
         return await this.create(configs);
       }
 
-      console.log(
-        "The configuration must be export default or export name by `configs`",
-      );
-
-      process.exit(1);
+      this.fail(204).message(205, exportMatchers);
     } catch (error) {
-      console.log(error);
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
+      throw error;
     }
   }
 
@@ -231,13 +258,15 @@ class TruckDriver {
         return await this.drive(configs);
       }
 
-      throw new Error(
-        "models must have name and schema. beware to defined them in each model",
-      );
+      this.fail(208).message(207);
     } catch (error) {
-      console.log("An error occured: " + error);
-    } finally {
-      await Builder.loggerInstance.save();
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
+      throw error;
     }
   }
 }

@@ -4,12 +4,12 @@ import * as gen from "../externals/pkg/index.js";
 import * as cons from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import isEqual from "lodash/isEqual.js";
-import { Logger } from "../log/index.mjs";
 import { Typing, Generator } from "./helpers/index.mjs";
 import { AutoGenerateId } from "./helpers/autoGenerateId.mjs";
+import isError from "lodash/isError.js";
+import Logger from "../log/index.mjs";
 
 class Builder extends AutoGenerateId {
-  private static logger = new Logger();
   private static map = new Map<string, Truck.IMock>();
   private static type = new Map<string, Truck.ITypeRecord>();
   private static options: Truck.IOptions = {};
@@ -34,10 +34,6 @@ class Builder extends AutoGenerateId {
     if (!misc.isOptionEnabled(options)) return undefined;
 
     return options;
-  }
-
-  public static get loggerInstance() {
-    return Builder.logger;
   }
 
   static build(schema: Truck.Schema): Truck.IReturnEntries {
@@ -105,6 +101,12 @@ class Builder extends AutoGenerateId {
 
       return misc.from(entries);
     } catch (error) {
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
       throw error;
     }
   }
@@ -146,6 +148,12 @@ class Builder extends AutoGenerateId {
 
       return notations.filter(Boolean).join("");
     } catch (error) {
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
       throw error;
     }
   }
@@ -207,6 +215,12 @@ class Builder extends AutoGenerateId {
         Builder.update(name, Builder.build(schema));
       });
     } catch (error) {
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
       throw error;
     }
   }
@@ -221,6 +235,12 @@ class Builder extends AutoGenerateId {
 
       return configs;
     } catch (error) {
+      if (isError(error)) {
+        const logger = new Logger();
+
+        logger.fail(212, { error: error.message });
+        process.exit(0);
+      }
       throw error;
     }
   }

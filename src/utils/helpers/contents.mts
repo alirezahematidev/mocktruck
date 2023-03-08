@@ -1,6 +1,8 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { format } from "../../misc/index.mjs";
+import { __PORT__ } from "../../constants/global.constants.mjs";
+import { TruckArgs } from "../../../cli/types/cli.type.mjs";
 
 class TContent {
   private models: string[] = [];
@@ -28,9 +30,11 @@ class TContent {
     await fs.writeFile(tpath, data);
   }
 
-  public async createApiIndex(port: number) {
+  public async createApiIndex(args: TruckArgs) {
+    if (!args.server) return;
+
     const urlTemp = `
-    const BASE_URL = "http://localhost:${port}/___truck/"
+    const BASE_URL = "http://localhost:${args.port ?? __PORT__}/___truck/"
     
     export default BASE_URL;
     ;

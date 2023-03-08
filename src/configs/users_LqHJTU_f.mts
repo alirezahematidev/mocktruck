@@ -1,6 +1,4 @@
-import { Users } from "./type";
-
-const users: Users = {
+export default {
   email: "dixiecrooks@crooks.com",
   firstname: "Rosemarie",
   age: 44704221,
@@ -17,5 +15,3 @@ const users: Users = {
     { name: "Qui vitae modi ut omnis." },
   ],
 };
-
-export { users };

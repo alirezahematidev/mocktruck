@@ -19,8 +19,8 @@ class TApiRequest {
     this.models.push(model);
   }
 
-  public async type(data: string, types: boolean) {
-    if (!types) return;
+  public async type(data: string, types: boolean, server?: boolean) {
+    if (!types || !server) return;
 
     const file = TYPE_WORD + ".ts";
 
@@ -29,7 +29,9 @@ class TApiRequest {
     await fs.writeFile(tpath, data);
   }
 
-  public async data(data: string) {
+  public async data(data: string, server?: boolean) {
+    if (!server) return;
+
     const tpath = path.resolve(this.target, "index.ts");
 
     await fs.writeFile(tpath, data);

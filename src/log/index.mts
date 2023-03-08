@@ -1,111 +1,125 @@
-import { Chalk } from "chalk";
-import path from "node:path";
-import fs from "node:fs/promises";
+import { Chalk, ChalkInstance } from "chalk";
+import ora, { Ora } from "ora";
+import boxen, { Options } from "boxen";
+import messages from "./messages/index.mjs";
+import { LogPattern } from "./types/log.type.mjs";
+import { matcher } from "./log.matcher.mjs";
 
-type LoggerConfig = {
-  outDirectory?: string;
+const boxOptions: Options = {
+  borderColor: "cyan",
+  borderStyle: "double",
+  dimBorder: true,
+  textAlignment: "center",
+  padding: { bottom: 1, left: 6, right: 6, top: 1 },
+  margin: { top: 1, bottom: 0, left: 0, right: 0 },
 };
 
-export class Logger {
-  private static chalk = new Chalk({ level: 1 });
-  private static logger = console.log;
-  private static configs: LoggerConfig | undefined = undefined;
-  private static logs: string = "";
+class Logger {
+  private chalk: ChalkInstance;
+  private ora: Ora;
+  private log = console.log;
 
-  constructor(configs?: LoggerConfig) {
-    Logger.configs = configs;
+  constructor() {
+    this.chalk = new Chalk({ level: 3 });
+    this.ora = ora();
   }
 
-  private static targetDir() {
-    if (!Logger.configs || !Logger.configs?.outDirectory) return;
+  public stack<S>(error: S) {
+    this.log(this.chalk.red("\nstack: ", error));
 
-    const dir = Logger.configs.outDirectory;
-
-    const current = process.cwd();
-
-    const tpath = path.resolve(current, dir);
-
-    return tpath;
+    return this;
   }
 
-  public async save() {
-    const target = Logger.targetDir();
+  public message(
+    code: number,
+    matchers?: ReadonlyArray<string>,
+    patterns?: LogPattern,
+  ) {
+    const text = matcher(messages[code], patterns);
 
-    if (!target) return;
+    if (!matchers || !matchers.length) {
+      console.log(this.chalk.whiteBright(text));
 
-    const date = new Date().toLocaleDateString(undefined, {
-      dateStyle: "medium",
-      formatMatcher: "best fit",
-    });
-
-    const name = `logs[${date}].txt`;
-
-    try {
-      await fs.access(target, fs.constants.R_OK);
-    } catch (error) {
-      await fs.mkdir(target);
+      return this;
     }
 
-    await fs.writeFile(path.resolve(target, name), Logger.logs);
+    const chunks = text.split(/\s+/gm);
+
+    const texts = chunks.map((chunk) => {
+      if (matchers.includes(chunk.replace(/\W+/g, ""))) {
+        return this.chalk.bold.whiteBright(chunk);
+      }
+      return this.chalk.whiteBright(chunk);
+    });
+
+    this.log(...texts);
+
+    return this;
   }
 
-  private static add(message: string) {
-    if (!Logger.targetDir()) return;
+  public success(code: number, patterns?: LogPattern) {
+    const text = matcher(messages[code], patterns);
 
-    const time = new Date().toLocaleTimeString();
+    this.ora.color = "green";
 
-    const text = `(${time})` + " " + message;
+    this.ora.succeed(this.chalk.green(text));
 
-    if (Logger.logs.includes(text)) return;
-
-    Logger.logs += text + "\n";
+    return this;
   }
 
-  public success(message: string, silent?: boolean) {
-    Logger.add(message);
+  public warn(code: number, patterns?: LogPattern) {
+    const text = matcher(messages[code], patterns);
 
-    if (silent) return;
+    this.ora.color = "yellow";
 
-    Logger.logger(Logger.chalk.greenBright(message));
+    this.ora.warn(this.chalk.yellow(text));
+
+    return this;
   }
 
-  public failed(message: string, silent?: boolean) {
-    Logger.add(message);
+  public fail(code: number, patterns?: LogPattern) {
+    const text = matcher(messages[code], patterns);
 
-    if (silent) return;
+    this.ora.color = "red";
 
-    Logger.logger(Logger.chalk.redBright(message));
+    this.ora.fail(this.chalk.red(text));
+
+    return this;
   }
 
-  public warn(message: string, silent?: boolean) {
-    Logger.add(message);
+  public process(code: number, patterns?: LogPattern) {
+    const text = matcher(messages[code], patterns);
 
-    if (silent) return;
+    this.ora.color = "cyan";
 
-    Logger.logger(Logger.chalk.yellowBright(message));
+    this.ora.stop().start(this.chalk.whiteBright(text));
+
+    return this;
   }
 
-  public info(message: string, silent?: boolean) {
-    Logger.add(message);
-
-    if (silent) return;
-
-    Logger.logger(Logger.chalk.blueBright(message));
+  public stop() {
+    this.ora.stop();
   }
 
-  public progress(message: string, silent?: boolean) {
-    Logger.add(message);
+  public server(code: number, choices?: string[], patterns?: LogPattern) {
+    const text = matcher(messages[code], patterns);
 
-    if (silent) return;
+    const server = ora();
 
-    Logger.logger(Logger.chalk.greenBright(message));
-  }
+    server.prefixText = `\n${this.chalk.cyan(text)}`;
+    server.spinner = "simpleDots";
+    server.color = "cyan";
 
-  public box(message: string, silent?: boolean) {
-    Logger.add(message);
+    if (!choices || !choices.length) {
+      server.start();
+    } else {
+      const message = boxen(choices.join("\n"), boxOptions);
 
-    if (silent) return;
+      server.start(this.chalk.cyan(message) + "\n");
+    }
 
-    Logger.logger(Logger.chalk.greenBright(message));
+    return this;
   }
 }
+
+export default Logger;

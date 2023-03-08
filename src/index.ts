@@ -1,1 +1,3 @@
-export * from "./services";
+import Truck from "./interfaces/index.mjs";
+
+export type { Truck };

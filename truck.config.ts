@@ -37,5 +37,3 @@ export const configs: Truck.Configuration = {
     },
   ],
 };
-
-export const g = { name: "gholi" };

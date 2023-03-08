@@ -24,6 +24,6 @@
   "ts-node": {
     "esm": true
   },
-  "include": ["src", "src/typings.d.ts", "contents", "requests", "cli"],
+  "include": ["src", "src/typings.d.ts", "cli"],
   "exclude": ["node_modules", "lib"]
 }

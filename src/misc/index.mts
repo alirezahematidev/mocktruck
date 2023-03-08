@@ -3,6 +3,9 @@ import * as cons from "../constants/index.mjs";
 import * as generators from "../externals/pkg/index.js";
 import Truck from "../interfaces/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
+import Logger from "../log/index.mjs";
+import { Socket } from "node:net";
+import { TruckArgs } from "../../cli/types/cli.type.mjs";
 
 /**
  * Wraps a synchronous function in an async function that returns a promise
@@ -714,7 +717,13 @@ export function getContent$(
   return joinStrings(imp, cons.BREAK, def, cons.BREAK, exp);
 }
 
-export function getApi$(model: string, isArray: boolean) {
+export async function getApi$(
+  model: string,
+  isArray: boolean,
+  args: TruckArgs,
+) {
+  if (!args.server) return;
+
   const cname = cap(model);
 
   const name = stackString("get", cname, "Data");
@@ -730,22 +739,9 @@ export function getApi$(model: string, isArray: boolean) {
     try {
       const response = await fetch(baseUrl + "${model}");
   
-      const key = response.headers.get("X-Truck-Key");
-  
-      if (!key) {
-        throw new Error("The api:${model} is undefined.");
-      }
-  
       const data = (await response.json()) as ${type};
   
       const ${model} = Object.assign({}, data);
-  
-      Object.defineProperty(${model}, "__id", {
-        value: key,
-        enumerable: true,
-        configurable: false,
-        writable: false,
-      });
   
       return ${model};
     } catch (error) {
@@ -884,14 +880,14 @@ export function canUseTypes(
   return wt;
 }
 
-type FormatEntry = [path: string, data: string];
+type FormatEntry = [path: string, data?: string];
 
 export async function format(...enteries: FormatEntry[]) {
   const templates = await Promise.all(
     enteries.map(async ([entry, data]) => {
       const options = await prettier.resolveConfig(entry);
 
-      const formatted = prettier.format(data, {
+      const formatted = prettier.format(data ?? "", {
         ...options,
         parser: "babel-ts",
         endOfLine: "lf",
