@@ -1,10 +1,8 @@
 import prettier from "prettier";
 import * as cons from "../constants/index.mjs";
-import * as generators from "../externals/pkg/index.js";
 import Truck from "../interfaces/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
-import Logger from "../log/index.mjs";
-import { Socket } from "node:net";
+import { faker } from "@faker-js/faker";
 // import { TruckArgs } from "../../cli/types/cli.type.mjs";
 
 /**
@@ -137,7 +135,7 @@ export function generateId(
     return increment();
   }
 
-  return generators.generate_uuid();
+  return faker.datatype.uuid();
 }
 
 /**
@@ -402,7 +400,7 @@ export function quotes(text: string) {
  * @returns {string} The wrapped property name with type notation and any
  *   additional annotations.
  */
-export function wrapType<S extends Truck.SharedTypeOptions>(
+export function wrapType<S extends Truck.TypeOptions>(
   property: string,
   notation: TypeNotation,
   options: S,
@@ -443,7 +441,7 @@ export function wrapStructType(property: string, type: string): string {
  * @returns {string} A string representing the definition of the struct
  *   property.
  */
-export function wrapStructDef<S extends Truck.SharedTypeOptions>(
+export function wrapStructDef<S extends Truck.TypeOptions>(
   property: string,
   options: S,
 ): string {
@@ -467,7 +465,7 @@ export function wrapStructDef<S extends Truck.SharedTypeOptions>(
  * @returns A string representing the wrapped array type definition.
  */
 
-export function wrapArrayDef<S extends Truck.SharedTypeOptions>(
+export function wrapArrayDef<S extends Truck.TypeOptions>(
   property: string,
   options: S,
 ) {

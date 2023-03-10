@@ -1,20 +1,20 @@
 import { Users } from "./type";
 
 const users: Users = {
-  email: "dixiecrooks@crooks.com",
-  firstname: "Rosemarie",
-  age: 44704221,
+  email: "Aurelie_Towne24@yahoo.com",
+  firstname: "Alexys",
+  age: 42348973,
   posts: [
-    { name: "Aut sunt in molestiae." },
-    { name: "In hic quia." },
-    { name: "Harum consectetur nemo." },
-    { name: "Quis voluptatem ratione in autem est." },
-    { name: "Quam atque alias omnis consequatur." },
-    { name: "Porro sit consequatur mollitia ut esse architecto." },
-    { name: "Reiciendis sapiente natus." },
-    { name: "Laboriosam nesciunt deleniti eos nihil." },
-    { name: "Molestias accusamus voluptas corporis et." },
-    { name: "Qui vitae modi ut omnis." },
+    { name: "Irving Medhurst" },
+    { name: "Sharon Kirlin" },
+    { name: "Mrs. Julius Gutkowski" },
+    { name: "Bradford Kohler" },
+    { name: "Mr. Ron Corkery" },
+    { name: "Sonia Jacobi" },
+    { name: "Christopher Littel" },
+    { name: "Moses Abernathy" },
+    { name: "Curtis Konopelski" },
+    { name: "Matthew McLaughlin" },
   ],
 };
 

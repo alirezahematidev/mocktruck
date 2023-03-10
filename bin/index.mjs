@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import TruckCommand from "../src/cli/cli.mjs";
+import TruckCommand from "../lib/cli/index.mjs";
 
 new TruckCommand().invoke();

@@ -1,13 +1,21 @@
 import Truck from "../interfaces/index.mjs";
 import * as misc from "../misc/index.mjs";
-import * as gen from "../externals/pkg/index.js";
 import * as cons from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import isEqual from "lodash/isEqual.js";
-import { Typing, Generator } from "./helpers/index.mjs";
+import { Typing, MockBuilder } from "./helpers/index.mjs";
 import { AutoGenerateId } from "./helpers/autoGenerateId.mjs";
 import isError from "lodash/isError.js";
 import Logger from "../log/index.mjs";
+import { faker } from "@faker-js/faker";
+import { intOptions } from "./helpers/utils.mjs";
+import { matchers } from "../interfaces/interface.matcher.mjs";
+
+type ValueType = Truck.SchemaOptions["type"];
+
+type MatchType = { readonly type: string };
+
+type Match<T extends MatchType, R extends string> = Exclude<T["type"], R>;
 
 class Builder extends AutoGenerateId {
   private static map = new Map<string, Truck.IMock>();
@@ -36,67 +44,83 @@ class Builder extends AutoGenerateId {
     return options;
   }
 
+  private static match<T extends MatchType, R extends string = never>(
+    arr: readonly Match<T, R>[],
+    val: ValueType,
+  ): val is Extract<ValueType, Match<T, R>> {
+    return arr.includes(val as Match<T, R>);
+  }
+
   static build(schema: Truck.Schema): Truck.IReturnEntries {
     try {
-      const generator = new Generator(schema);
+      const generator = new MockBuilder(schema);
 
       const properties = misc.getKeys<Truck.Schema>(schema);
 
       const entries = properties.map((property) => {
         const type = schema[property].type;
 
-        switch (type) {
-          case "array":
-            return generator.array(property, Builder);
-
-          case "object":
-            return generator.object(property, Builder);
-
-          case "firstname":
-            return generator.char(property, gen.generate_firstname);
-
-          case "lastname":
-            return generator.char(property, gen.generate_lastname);
-
-          case "fullname":
-            return generator.char(property, gen.generate_fullname);
-
-          case "paragraph":
-            return generator.char(property, gen.generate_paragraph);
-
-          case "paragraphs":
-            return generator.char(property, gen.generate_paragraphs);
-
-          case "sentence":
-            return generator.char(property, gen.generate_sentence);
-
-          case "word":
-            return generator.char(property, gen.generate_word);
-
-          case "digits":
-            return generator.digit(property);
-
-          case "bigint":
-            return generator.bigint(property);
-
-          case "date":
-            return generator.date(property);
-
-          case "domain":
-            return generator.domain(property);
-
-          case "email":
-            return generator.email(property);
-
-          case "uuid":
-            return generator.uuid(property);
-
-          case "boolean":
-            return generator.bool(property);
-
-          default:
-            return generator.default(property);
+        if (Builder.match<Truck.TArray>(matchers.array, type)) {
+          return generator.array(property, Builder);
         }
+
+        if (Builder.match<Truck.TStruct>(matchers.object, type)) {
+          return generator.object(property, Builder);
+        }
+
+        if (Builder.match<Truck.TName>(matchers.name, type)) {
+          const s = schema[property] as Truck.TName;
+
+          if (type === "fullName") {
+            return [property, faker.name[type]({ sex: s.gender })];
+          }
+
+          return [property, faker.name[type](s.gender)];
+        }
+
+        if (Builder.match<Truck.TBool>(matchers.boolean, type)) {
+          return [property, faker.datatype[type]()];
+        }
+
+        if (Builder.match<Truck.TInteger>(matchers.integer, type)) {
+          const s = schema[property] as Truck.TInteger;
+
+          const range = intOptions(s.length);
+
+          return [property, faker.datatype[type](range)];
+        }
+
+        if (Builder.match<Truck.TDate>(matchers.date, type)) {
+          const s = schema[property] as Truck.TDate;
+
+          const from = "2000-01-01T00:00:00.000Z";
+
+          const to = new Date().toISOString();
+
+          const date = faker[type].between(from, to);
+
+          const ds = date[s.format === "iso" ? "toISOString" : "toUTCString"]();
+
+          return [property, ds];
+        }
+
+        if (Builder.match<Truck.TInternet>(matchers.net, type)) {
+          return [property, faker.internet[type]()];
+        }
+
+        if (Builder.match<Truck.TLorem>(matchers.lorem, type)) {
+          const s = schema[property] as Truck.TLorem;
+
+          const input = misc.cased(faker.lorem[type](), s.case);
+
+          return [property, input];
+        }
+
+        if (Builder.match<Truck.TUuid>(matchers.uuid, type)) {
+          return [property, faker.datatype[type]()];
+        }
+
+        return [property, cons.UNKNOWN];
       }) as Truck.IMapping[];
 
       return misc.from(entries);
@@ -302,26 +326,29 @@ class Builder extends AutoGenerateId {
       const type = schema[property].type;
 
       switch (type) {
-        case "firstname":
-        case "lastname":
-        case "fullname":
+        case "firstName":
+        case "lastName":
+        case "fullName":
         case "date":
-        case "domain":
+        case "url":
         case "email":
         case "paragraph":
         case "paragraphs":
         case "sentence":
         case "uuid":
         case "word":
+        case "password":
+        case "ip":
           return { property, notation: TypeNotation.STRING };
 
         case "boolean":
           return { property, notation: TypeNotation.BOOL };
 
-        case "digits":
+        case "number":
+        case "float":
           return { property, notation: TypeNotation.NUMBER };
 
-        case "bigint":
+        case "bigInt":
           return { property, notation: TypeNotation.BIGINT };
 
         case "object":

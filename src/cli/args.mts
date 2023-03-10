@@ -1,6 +1,7 @@
 import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
-const args = yargs(process.argv.slice(2))
+const args = yargs(hideBin(process.argv))
   .option("input", {
     alias: "i",
     describe: "Config file path",

@@ -9,16 +9,16 @@ export const configs: Truck.Configuration = {
           type: "email",
         },
         firstname: {
-          type: "firstname",
+          type: "firstName",
         },
         age: {
-          type: "digits",
+          type: "number",
         },
         posts: {
           type: "array",
           schema: {
             name: {
-              type: "sentence",
+              type: "fullName",
             },
           },
         },
@@ -28,10 +28,10 @@ export const configs: Truck.Configuration = {
       name: "employees",
       schema: {
         firstname: {
-          type: "firstname",
+          type: "firstName",
         },
         age: {
-          type: "digits",
+          type: "number",
         },
       },
     },

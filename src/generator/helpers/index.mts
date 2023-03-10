@@ -1,3 +1,3 @@
-export * from "./generator.mjs";
+export * from "./mockbuilder.mjs";
 export * from "./typing.mjs";
 export * from "./autoGenerateId.mjs";

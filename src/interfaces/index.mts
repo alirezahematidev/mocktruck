@@ -53,30 +53,54 @@ declare namespace Truck {
     notation: TypeNotation;
   };
 
-  type NameTypeOptions = "firstname" | "lastname" | "fullname";
-
-  type DateTypeOptions = "date";
-
-  type InternetTypeOptions = "email" | "domain";
-
-  type LoremTypeOptions = "word" | "sentence" | "paragraph" | "paragraphs";
-
-  type UuidTypeOptions = "uuid";
-
-  type DigitTypeOptions = "digits" | "bigint";
-
-  type BoolTypeOptions = "boolean";
-
-  type CharTypeOptions = NameTypeOptions | LoremTypeOptions;
-
-  type ArrayTypeOptions = "array";
-
-  type StructTypeOptions = "object";
-
-  export type SharedTypeOptions = {
+  export type TypeOptions = {
     optional?: boolean;
     nullable?: boolean;
   };
+
+  export interface TName extends TypeOptions {
+    readonly type: "firstName" | "lastName" | "fullName";
+    gender?: "male" | "female";
+  }
+
+  export interface TDate extends TypeOptions {
+    readonly type: "date";
+    format?: "iso" | "utc";
+  }
+
+  export interface TInternet extends TypeOptions {
+    readonly type: "email" | "password" | "url" | "ip";
+  }
+
+  export interface TLorem extends TypeOptions {
+    readonly type: "word" | "sentence" | "paragraph" | "paragraphs";
+    case?: "uppercase" | "lowercase" | "capitalize";
+  }
+
+  export interface TInteger extends TypeOptions {
+    readonly type: "bigInt" | "float" | "number";
+    length?: number;
+  }
+
+  export interface TUuid extends TypeOptions {
+    readonly type: "uuid";
+  }
+
+  export interface TBool extends TypeOptions {
+    readonly type: "boolean";
+  }
+
+  export interface TArray extends TypeOptions {
+    readonly type: "array";
+    schema: Schema;
+    autoGenerateId?: AutoGenerateIdOptions;
+    count?: number;
+  }
+
+  export interface TStruct extends TypeOptions {
+    readonly type: "object";
+    schema: Schema;
+  }
 
   export type AutoGenerateIdOptions = {
     field?: string;
@@ -108,14 +132,15 @@ declare namespace Truck {
   }
 
   type SchemaOptions =
-    | TChar
-    | TArray
-    | TStruct
-    | TDigit
-    | TUuid
-    | TInternet
+    | TName
     | TDate
-    | TBool;
+    | TLorem
+    | TInternet
+    | TInteger
+    | TBool
+    | TUuid
+    | TArray
+    | TStruct;
 
   export type ConfigModel = {
     name: string;
@@ -124,44 +149,8 @@ declare namespace Truck {
   };
 
   export type Schema = {
-    [property: string]: SchemaOptions;
+    [p: string]: SchemaOptions;
   };
-
-  export interface TChar extends SharedTypeOptions {
-    readonly type: CharTypeOptions;
-    case?: "uppercase" | "lowercase" | "capitalize";
-  }
-
-  export interface TArray extends SharedTypeOptions {
-    readonly type: ArrayTypeOptions;
-    schema: Schema;
-    autoGenerateId?: AutoGenerateIdOptions;
-    count?: number;
-  }
-
-  export interface TStruct extends SharedTypeOptions {
-    readonly type: StructTypeOptions;
-    schema: Schema;
-  }
-
-  export interface TDigit extends SharedTypeOptions {
-    readonly type: DigitTypeOptions;
-    length?: number;
-  }
-  export interface TUuid extends SharedTypeOptions {
-    readonly type: UuidTypeOptions;
-  }
-  export interface TInternet extends SharedTypeOptions {
-    readonly type: InternetTypeOptions;
-  }
-  export interface TBool extends SharedTypeOptions {
-    readonly type: BoolTypeOptions;
-    frequency?: number;
-  }
-  export interface TDate extends SharedTypeOptions {
-    readonly type: DateTypeOptions;
-    format?: "ISO" | "UTC";
-  }
 
   export interface Configuration {
     models: ConfigModel | Array<ConfigModel>;

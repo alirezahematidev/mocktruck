@@ -20,6 +20,30 @@ const config = {
         loader: "ts-loader",
         exclude: ["/node_modules/"],
       },
+      {
+        test: /\.wasm$/,
+        loader: "wasm-loader",
+        exclude: ["/node_modules/"],
+      },
+      {
+        test: /\.js$/,
+        exclude: ["/node_modules/"],
+        use: [
+          {
+            loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-env"],
+            },
+          },
+          {
+            loader: "esbuild-loader",
+            options: {
+              target: "ESNext",
+              format: "esm",
+            },
+          },
+        ],
+      },
     ],
   },
   resolve: {
@@ -30,7 +54,7 @@ const config = {
     alias: {
       src: path.resolve(__dirname, "src"),
     },
-    extensions: [".ts", ".js", ".cjs", ".mts", ".mjs"],
+    extensions: [".ts", ".js", ".cjs", ".mts", ".mjs", ".wasm"],
   },
   externals: {
     lodash: "_",
