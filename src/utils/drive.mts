@@ -1,17 +1,14 @@
-import Truck from "../interfaces/index.mjs";
+import Truck from "../interfaces/index.js";
 import * as misc from "../misc/index.mjs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import glob from "fast-glob";
 import serialize from "serialize-javascript";
 import TContent from "./helpers/contents.mjs";
-import TServices from "./helpers/services.mjs";
 import TDataBuilder from "./helpers/databuilder.mjs";
-import parsePlugins from "./plugin.js";
+import parsePlugins from "./plugin.mjs";
 import Builder from "../generator/index.mjs";
-import TApiRequest from "./helpers/api.mjs";
-import { __CONTENTS__, __REQUESTS__ } from "../constants/global.constants.mjs";
-// import { TruckArgs } from "../../cli/types/cli.type.mjs";
+import { __CONTENTS__ } from "../constants/global.constants.mjs";
 import Logger from "../log/index.mjs";
 import isError from "lodash/isError.js";
 
@@ -19,8 +16,10 @@ const exportMatchers: ReadonlyArray<string> = ["default", "configs"];
 
 type ImportedConfig = Record<string, Truck.Configuration>;
 
-async function defineOutput(target: string) {
-  const output = path.resolve(process.cwd(), target);
+async function defineOutput(outputEntry?: string) {
+  outputEntry = outputEntry ?? "out";
+
+  const output = path.resolve(process.cwd(), outputEntry);
 
   try {
     await fs.access(output, fs.constants.R_OK);
@@ -36,26 +35,22 @@ function isValidConfiguration(configs: Truck.Configuration) {
 }
 
 const emptyFolders = async (
-  folderPaths: string[],
+  folderPath: string,
   data: string[],
   clean?: boolean,
 ) => {
   try {
-    const removeTasks = folderPaths.map(async (folderPath) => {
-      const dirs = await fs.readdir(folderPath);
+    const dirs = await fs.readdir(folderPath);
 
-      const cdirs = misc.compareAndFilter(dirs, data);
+    const cdirs = misc.compareAndFilter(dirs, data);
 
-      const fdirs = clean ? dirs : cdirs;
+    const fdirs = clean ? dirs : cdirs;
 
-      for (const dir of fdirs) {
-        const rd = path.resolve(folderPath, dir);
+    for (const dir of fdirs) {
+      const rd = path.resolve(folderPath, dir);
 
-        await fs.rm(rd, { recursive: true, force: true });
-      }
-    });
-
-    await Promise.all(removeTasks);
+      await fs.rm(rd, { recursive: true, force: true });
+    }
   } catch (error) {
     if (isError(error)) {
       const logger = new Logger();
@@ -87,14 +82,11 @@ const makeDirectories = async (...paths: string[]) => {
 
 class TruckDriver extends Logger {
   private matcher: string;
-  private args: any;
 
-  constructor(args: any) {
+  constructor() {
     super();
 
-    this.args = args;
-
-    this.matcher = "**/truck.config.{js,ts,mjs,mts}";
+    this.matcher = "**/truck.config.mts";
   }
 
   private async drive(configs: Truck.Configuration) {
@@ -111,18 +103,13 @@ class TruckDriver extends Logger {
 
       const plugins = configOptions.plugins || [];
 
-      const [contentOut, requestOut] = await Promise.all([
-        defineOutput(__CONTENTS__),
-        defineOutput(__REQUESTS__),
-      ]);
+      const outputEntry = configOptions.output;
 
-      await emptyFolders([contentOut, requestOut], data, clean);
+      const out$ = await defineOutput(outputEntry);
 
-      const contents = new TContent([contentOut, requestOut]);
+      await emptyFolders(out$, data, clean);
 
-      const services = new TServices();
-
-      await services.regenerate();
+      const contents = new TContent(out$);
 
       const modelMapping = data.map(async (model) => {
         contents.getInstances(model);
@@ -141,39 +128,20 @@ class TruckDriver extends Logger {
 
         const usetype = misc.canUseTypes(options);
 
-        const hash = misc.randomKey(8);
-
-        await services.createConfig(model, input, hash);
-
-        const contentTarget = path.resolve(contentOut, model);
-
-        const requestTarget = path.resolve(requestOut, model);
+        const contentTarget = path.resolve(out$, model);
 
         const __type = misc.getType$(model, Builder.types(model));
 
         const __content = misc.getContent$(model, input, isArray, usetype);
 
-        const __api = await misc.getApi$(model, isArray, this.args);
-
-        await makeDirectories(contentTarget, requestTarget);
+        await makeDirectories(contentTarget);
 
         const maker = new TDataBuilder(contentTarget);
 
-        const requests = new TApiRequest(requestTarget);
-
-        const [fData, fType, fApi] = await misc.format(
-          [contentOut, __content],
-          [contentOut, __type],
-          [requestOut, __api],
-        );
+        const [fData, fType] = await misc.format(__content, __type);
 
         await Promise.all(
-          [
-            maker.type(fType, usetype),
-            maker.data(fData),
-            requests.type(fType, usetype, this.args.server),
-            requests.data(fApi, this.args.server),
-          ].filter(Boolean),
+          [maker.type(fType, usetype), maker.data(fData)].filter(Boolean),
         );
 
         await maker.index(usetype);
@@ -183,13 +151,7 @@ class TruckDriver extends Logger {
 
       await Promise.all(modelMapping);
 
-      await Promise.all(
-        [
-          contents.createContentIndex(),
-          services.define(),
-          contents.createApiIndex(this.args),
-        ].filter(Boolean),
-      );
+      await contents.createContentIndex();
     } catch (error) {
       if (isError(error)) {
         const logger = new Logger();
@@ -206,6 +168,7 @@ class TruckDriver extends Logger {
       const [match] = await glob(this.matcher, {
         cwd: process.cwd(),
         absolute: true,
+        unique: true,
       });
 
       if (!match) {

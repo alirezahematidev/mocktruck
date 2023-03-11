@@ -43,13 +43,7 @@ class TDataBuilder {
 
     const tpath = path.resolve(this.target, file);
 
-    const options = await prettier.resolveConfig(this.target);
-
-    const data = prettier.format(template, {
-      ...options,
-      parser: "babel-ts",
-      endOfLine: "lf",
-    });
+    const data = prettier.format(template, { parser: "babel-ts" });
 
     await fs.writeFile(tpath, data);
   }

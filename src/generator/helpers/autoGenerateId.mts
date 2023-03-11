@@ -1,6 +1,6 @@
 import * as cons from "../../constants/index.mjs";
 import * as misc from "../../misc/index.mjs";
-import Truck from "../../interfaces/index.mjs";
+import Truck from "../../interfaces/index.js";
 
 export class AutoGenerateId {
   public static generate(

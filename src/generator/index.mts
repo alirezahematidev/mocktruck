@@ -1,4 +1,4 @@
-import Truck from "../interfaces/index.mjs";
+import Truck from "../interfaces/index.js";
 import * as misc from "../misc/index.mjs";
 import * as cons from "../constants/index.mjs";
 import { TypeNotation } from "../constants/notations.enum.mjs";

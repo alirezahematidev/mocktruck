@@ -1,6 +1,6 @@
 import prettier from "prettier";
 import * as cons from "../constants/index.mjs";
-import Truck from "../interfaces/index.mjs";
+import Truck from "../interfaces/index.js";
 import { TypeNotation } from "../constants/notations.enum.mjs";
 import { faker } from "@faker-js/faker";
 // import { TruckArgs } from "../../cli/types/cli.type.mjs";
@@ -874,17 +874,11 @@ export function canUseTypes(
   return wt;
 }
 
-type FormatEntry = [path: string, data?: string];
-
-export async function format(...enteries: FormatEntry[]) {
+export async function format(...enteries: string[]) {
   const templates = await Promise.all(
-    enteries.map(async ([entry, data]) => {
-      const options = await prettier.resolveConfig(entry);
-
+    enteries.map(async (data) => {
       const formatted = prettier.format(data ?? "", {
-        ...options,
         parser: "babel-ts",
-        endOfLine: "lf",
       });
 
       return formatted;

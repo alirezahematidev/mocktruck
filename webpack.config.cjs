@@ -8,6 +8,7 @@ const config = {
   entry: {
     main: path.resolve(__dirname, "./src/index"),
   },
+
   output: {
     path: path.resolve(__dirname, "lib"),
     filename: "[name].js",
@@ -16,48 +17,23 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.(ts|tsx|mts)$/i,
+        test: /\.(ts)$/i,
         loader: "ts-loader",
-        exclude: ["/node_modules/"],
+        exclude: "/node_modules/",
       },
       {
-        test: /\.wasm$/,
-        loader: "wasm-loader",
-        exclude: ["/node_modules/"],
-      },
-      {
-        test: /\.js$/,
+        test: /\.(js|mjs)$/,
         exclude: ["/node_modules/"],
         use: [
           {
             loader: "babel-loader",
-            options: {
-              presets: ["@babel/preset-env"],
-            },
-          },
-          {
-            loader: "esbuild-loader",
-            options: {
-              target: "ESNext",
-              format: "esm",
-            },
           },
         ],
       },
     ],
   },
   resolve: {
-    modules: [
-      path.resolve(__dirname, "./node_modules"),
-      path.resolve(__dirname, "lib"),
-    ],
-    alias: {
-      src: path.resolve(__dirname, "src"),
-    },
-    extensions: [".ts", ".js", ".cjs", ".mts", ".mjs", ".wasm"],
-  },
-  externals: {
-    lodash: "_",
+    extensions: [".ts", ".js", ".mts", ".mjs"],
   },
 };
 

@@ -1,4 +1,4 @@
-import Truck from "../interfaces/index.mjs";
+import Truck from "../interfaces/index.js";
 
 function parsePlugins(
   plugins: Truck.Plugin[],

@@ -1,15 +1,13 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { format } from "../../misc/index.mjs";
-import { __PORT__ } from "../../constants/global.constants.mjs";
-// import { TruckArgs } from "../../../cli/types/cli.type.mjs";
 
 class TContent {
   private models: string[] = [];
-  private roots: string[] = [];
+  private root: string;
 
-  constructor(roots: string[]) {
-    this.roots = roots;
+  constructor(roots: string) {
+    this.root = roots;
   }
 
   public getInstances(model: string) {
@@ -23,33 +21,11 @@ class TContent {
       ${this.models.map((model) => `export * from "./${model}";`).join("\n")}
     `;
 
-    const tpath = path.resolve(this.roots[0], "index.ts");
+    const tpath = path.resolve(this.root, "index.ts");
 
-    const [data] = await format([tpath, result]);
+    const [data] = await format(result);
 
     await fs.writeFile(tpath, data);
-  }
-
-  public async createApiIndex(args: any) {
-    if (!args.server) return;
-
-    const urlTemp = `
-    const BASE_URL = "http://localhost:${args.port ?? __PORT__}/___truck/"
-    
-    export default BASE_URL;
-    ;
-`;
-
-    const result = `
-      ${this.models.map((model) => `export * from "./${model}";`).join("\n")}
-    `;
-
-    const tpath = path.resolve(this.roots[1], "index.ts");
-    const urlpath = path.resolve(this.roots[1], "url.ts");
-
-    const [data, url] = await format([tpath, result], [urlpath, urlTemp]);
-
-    await Promise.all([fs.writeFile(tpath, data), fs.writeFile(urlpath, url)]);
   }
 }
 

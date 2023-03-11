@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "ESNext"],
     "declaration": true,
     "declarationMap": true,
@@ -15,14 +14,7 @@
     "noImplicitAny": true,
     "module": "ESNext",
     "target": "ESNext",
-    "allowJs": true,
-    "paths": {
-      "truck:contents": ["./contents/index.ts"],
-      "truck:requests": ["./requests/index.ts"]
-    }
-  },
-  "ts-node": {
-    "esm": true
+    "allowJs": true
   },
   "include": ["src", "src/typings.d.ts"],
   "exclude": ["node_modules", "lib"]

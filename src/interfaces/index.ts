@@ -156,6 +156,7 @@ declare namespace Truck {
     models: ConfigModel | Array<ConfigModel>;
     globalOptions?: GlobalOptions;
     plugins?: Plugin[];
+    output?: string;
   }
 
   export interface ConfigurationOptions extends Omit<Configuration, "models"> {}

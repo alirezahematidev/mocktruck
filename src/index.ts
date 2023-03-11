@@ -1,3 +1,3 @@
-import Truck from "./interfaces/index.mjs";
+import Truck from "./interfaces/index.js";
 
 export type { Truck };
